@@ -20,7 +20,7 @@ import {
   SCALE_BY,
   SecondaryAction,
 } from "../../constants";
-import { Arrow, Circle, Rectangle, Scribble, Shape, Text } from "../../types";
+import { Text } from "../../types";
 import { downloadURI, getNumericVal, reorderArray } from "../../utilities";
 import { ActionButtons } from "../ActionButtons";
 import { Menu } from "../Menu";
@@ -32,6 +32,8 @@ import { ArrowConfig } from "konva/lib/shapes/Arrow";
 import { LineConfig } from "konva/lib/shapes/Line";
 import { CircleConfig } from "konva/lib/shapes/Circle";
 import { RectConfig } from "konva/lib/shapes/Rect";
+import { transform } from "framer-motion";
+import Konva from "konva";
 
 interface ExcaliDrawProps {}
 
@@ -40,21 +42,19 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     const containerRef = useRef<HTMLDivElement>(null);
     const currentShapeRef = useRef<string>();
     const isPaintRef = useRef(false);
+    const isSelectionRef = useRef(false);
     const stageRef = useRef<any>();
 
     const transformerRef = useRef<any>(null);
 
     const [{ x: stageX, y: stageY }, setStageXY] = useState({ x: 0, y: 0 });
 
-    const [scribbles, setScribbles] = useState<Scribble[]>([]);
-    const [rectangles, setRectangles] = useState<Rectangle[]>([]);
-    const [circles, setCircles] = useState<Circle[]>([]);
-    const [arrows, setArrows] = useState<ArrowConfig[]>([]);
     const [texts, setTexts] = useState<Text[]>([]);
     const [images, setImages] = useState<HTMLImageElement[]>([]);
     const [drawings, setDrawings] = useState<NodeConfig[]>([]);
     const [currentlyDrawnShape, setCurrentlyDrawnShape] =
       useState<NodeConfig>();
+    const [selectionBox, setSelectionBox] = useState<NodeConfig>();
 
     const [textPosition, setTextPosition] = useState<{
       x: number;
@@ -70,11 +70,11 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       }[]
     >([]);
 
-    const [color, setColor] = useState("#000");
     const [drawAction, setDrawAction] = useState<DrawAction>(
       DrawAction.Scribble
     );
     const inputRef = useRef<HTMLInputElement>(null);
+    const color = "#000";
 
     const onBlurTextField = useCallback(() => {
       setTextPosition(undefined);
@@ -94,53 +94,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       ]);
       setEditText("");
     }, [editText, color, textPosition]);
-
-    const getSetterByType = useCallback((type: DrawAction | undefined) => {
-      let setter: React.Dispatch<React.SetStateAction<any[]>> | undefined;
-      switch (type) {
-        case DrawAction.Rectangle:
-          setter = setRectangles;
-          break;
-        case DrawAction.Circle:
-          setter = setCircles;
-          break;
-        case DrawAction.Arrow:
-          setter = setArrows;
-          break;
-        case DrawAction.Scribble:
-          setter = setScribbles;
-          break;
-        case DrawAction.Text:
-          setter = setTexts;
-          break;
-      }
-      return { setter };
-    }, []);
-
-    const getRecordsByType = useCallback(
-      (type: DrawAction | undefined) => {
-        let records: any[] | undefined;
-        switch (type) {
-          case DrawAction.Rectangle:
-            records = rectangles;
-            break;
-          case DrawAction.Circle:
-            records = circles;
-            break;
-          case DrawAction.Arrow:
-            records = arrows;
-            break;
-          case DrawAction.Scribble:
-            records = scribbles;
-            break;
-          case DrawAction.Text:
-            records = texts;
-            break;
-        }
-        return records;
-      },
-      [arrows, circles, rectangles, scribbles]
-    );
 
     const [currentSelectedShape, setCurrentSelectedShape] = useState<{
       type: DrawAction;
@@ -166,15 +119,29 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       [stageRef, deSelect]
     );
 
-    const onStageMouseUp = useCallback(() => {
+    const onStageMouseUp = () => {
       isPaintRef.current = false;
-      // const { setter } = getSetterByType(drawAction);
-      // if (setter)
-      //   setter((prevRecords) => [...prevRecords, currentlyDrawnShape]);
+      console.log({ isSelectionRef });
+      if (isSelectionRef.current) {
+        const shapes = stageRef?.current?.find((node: any) => {
+          console.log({ node });
+          return node?.attrs?.name !== DrawAction.Select;
+        });
+        const selectionBox = stageRef?.current?.find(`.${DrawAction.Select}`);
+        console.log({ selectionBox });
+        const box = selectionBox?.[0]?.getClientRect();
+        const selected = shapes.filter((shape: any) =>
+          Konva.Util.haveIntersection(box, shape.getClientRect())
+        );
+
+        transformerRef?.current?.nodes(selected);
+        isSelectionRef.current = false;
+        setSelectionBox(undefined);
+      }
       if (currentlyDrawnShape)
         setDrawings((prevDrawings) => [...prevDrawings, currentlyDrawnShape]);
       setCurrentlyDrawnShape(undefined);
-    }, [currentlyDrawnShape, drawAction]);
+    };
 
     const updateCurrentDrawnShape = <T,>(updaterFn: (payload: T) => T) => {
       setCurrentlyDrawnShape((prevDrawnShape) => {
@@ -187,13 +154,33 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
 
     const onStageMouseDown = (e: KonvaEventObject<MouseEvent>) => {
       checkDeselect(e);
-
-      if (drawAction === DrawAction.Select) return;
-      isPaintRef.current = true;
       const stage = stageRef?.current;
       const pos = stage?.getPointerPosition();
       const x = getNumericVal(pos?.x) - stageX;
       const y = getNumericVal(pos?.y) - stageY;
+      console.log({ transformerRef });
+      if (
+        drawAction === DrawAction.Select &&
+        !transformerRef?.current?.nodes()?.length
+      ) {
+        isSelectionRef.current = true;
+        setSelectionBox({
+          height: 1,
+          width: 1,
+          x,
+          y,
+          color,
+          scaleX: 1,
+          scaleY: 1,
+          fill: "rgba(0,0,255,0.5)",
+          opacity: 0.2,
+          listening: false,
+          name: DrawAction.Select,
+        });
+      }
+
+      isPaintRef.current = true;
+
       const id = uuidv4();
       currentShapeRef.current = id;
 
@@ -277,10 +264,20 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     };
 
     const onStageMouseMove = () => {
-      if (drawAction === DrawAction.Select || !isPaintRef.current) return;
+      if (
+        (drawAction === DrawAction.Select && !isSelectionRef.current) ||
+        !isPaintRef.current
+      )
+        return;
+      if (drawAction === DrawAction.Select) {
+        setSelectionBox((prevSelectionBox) => ({
+          ...prevSelectionBox,
+          height: y - (prevSelectionBox?.y || 0),
+          width: x - (prevSelectionBox?.x || 0),
+        }));
+      }
 
       const stage = stageRef?.current;
-      const id = currentShapeRef.current;
       const pos = stage?.getPointerPosition();
       const x = getNumericVal(pos?.x) - stageX;
       const y = getNumericVal(pos?.y) - stageY;
@@ -323,20 +320,18 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       }
     };
 
-    console.log({ currentSelectedShape, drawings });
-
     const onShapeClick = (e: KonvaEventObject<MouseEvent>) => {
       if (drawAction !== DrawAction.Select) return;
       const currentTarget = e.currentTarget;
 
       const type = currentTarget?.attrs?.name;
       const id = currentTarget?.attrs?.id;
-      const records = getRecordsByType(type);
+
       setCurrentSelectedShape({
         type,
         id,
         node: currentTarget,
-        props: records?.find((record) => record.id === id),
+        props: drawings?.find((record) => record.id === id),
       });
       transformerRef?.current?.node(currentTarget);
     };
@@ -398,26 +393,24 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       const lastAction = canvasHistoryPayload.pop();
       setCanvasHistory(canvasHistoryPayload);
 
-      const { setter } = getSetterByType(lastAction?.drawAction);
       const id = lastAction?.payload?.id;
-      if (!setter) return;
       switch (lastAction?.type) {
         case CanvasAction.Add: {
           transformerRef?.current?.nodes([]);
-          setter((prevRecords) =>
+          setDrawings((prevRecords) =>
             prevRecords.filter((prevRecord) => prevRecord.id !== id)
           );
           break;
         }
         case CanvasAction.Delete: {
-          setter((prevRecords) => [
+          setDrawings((prevRecords) => [
             ...prevRecords,
             lastAction?.payload?.record,
           ]);
           break;
         }
         case CanvasAction.Resize: {
-          setter((prevRecords) =>
+          setDrawings((prevRecords) =>
             prevRecords.map((prevRecord) =>
               prevRecord.id === id
                 ? { ...prevRecord, ...lastAction?.payload }
@@ -427,7 +420,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
           break;
         }
         case CanvasAction.Drag: {
-          setter((prevRecords) =>
+          setDrawings((prevRecords) =>
             prevRecords.map((prevRecord) =>
               prevRecord.id === id
                 ? { ...prevRecord, ...lastAction?.payload }
@@ -437,12 +430,10 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
           break;
         }
       }
-    }, [canvasHistory, getSetterByType]);
+    }, [canvasHistory]);
 
     const onDeleteShape = useCallback(() => {
-      const { setter } = getSetterByType(currentSelectedShape?.type);
-      const records = getRecordsByType(currentSelectedShape?.type);
-      const record = records?.find(
+      const record = drawings?.find(
         (record) => record.id === currentSelectedShape?.id
       );
       setCanvasHistory((prevCanvasHistory) => {
@@ -457,18 +448,14 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       });
 
       transformerRef?.current?.nodes([]);
-      setter &&
-        setter((prevRecords) =>
-          prevRecords.filter((record) => record.id !== currentSelectedShape?.id)
-        );
+      setDrawings((prevRecords) =>
+        prevRecords.filter((record) => record.id !== currentSelectedShape?.id)
+      );
       setCurrentSelectedShape(undefined);
-    }, [getSetterByType, getRecordsByType, currentSelectedShape]);
+    }, [currentSelectedShape]);
 
     const onClear = useCallback(() => {
-      setRectangles([]);
-      setCircles([]);
-      setArrows([]);
-      setScribbles([]);
+      setDrawings([]);
       setImages([]);
       setTexts([]);
     }, []);
@@ -510,44 +497,37 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       [drawAction, stageRef]
     );
 
-    const onDragShapeEnd = useCallback(
-      (e: KonvaEventObject<MouseEvent>) => {
-        const type = e.target?.attrs?.name;
-        const id = e.target?.attrs?.id;
+    const onDragShapeEnd = useCallback((e: KonvaEventObject<MouseEvent>) => {
+      const type = e.target?.attrs?.name;
+      const id = e.target?.attrs?.id;
 
-        const { setter } = getSetterByType(type);
-        setter &&
-          setter((prevRecords) =>
-            prevRecords.map((record) =>
-              record.id === id
-                ? { ...record, x: e.target.x(), y: e.target.y() }
-                : record
-            )
-          );
-      },
-      [getSetterByType]
-    );
+      setDrawings((prevRecords) =>
+        prevRecords.map((record) =>
+          record.id === id
+            ? { ...record, x: e.target.x(), y: e.target.y() }
+            : record
+        )
+      );
+    }, []);
 
     const onTransformShapeEnd = useCallback(
       (e: KonvaEventObject<MouseEvent>) => {
         const type = e.target?.attrs?.name;
         const id = e.target?.attrs?.id;
 
-        const { setter } = getSetterByType(type);
-        setter &&
-          setter((prevRecords) =>
-            prevRecords.map((record) =>
-              record.id === id
-                ? {
-                    ...record,
-                    scaleX: e.target.attrs.scaleX,
-                    scaleY: e.target.attrs.scaleY,
-                  }
-                : record
-            )
-          );
+        setDrawings((prevRecords) =>
+          prevRecords.map((record) =>
+            record.id === id
+              ? {
+                  ...record,
+                  scaleX: e.target.attrs.scaleX,
+                  scaleY: e.target.attrs.scaleY,
+                }
+              : record
+          )
+        );
       },
-      [getSetterByType]
+      []
     );
 
     const onImportImageSelect = useCallback(
@@ -678,20 +658,23 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     []);
 
     const onDuplicate = () => {
-      const { setter } = getSetterByType(currentSelectedShape?.type);
-      const records = getRecordsByType(currentSelectedShape?.type);
-      const record = records?.find(
+      const record = drawings?.find(
         (record) => record.id === currentSelectedShape?.id
       );
-      if (setter)
-        setter((prevRecords) => [
-          ...prevRecords,
-          { ...record, id: uuidv4(), x: record.x + 5, y: record.y + 5 },
-        ]);
+      if (!record) return;
+      setDrawings((prevRecords) => [
+        ...prevRecords,
+        {
+          ...record,
+          id: uuidv4(),
+          x: (record.x || 0) + 5,
+          y: (record.y || 0) + 5,
+        },
+      ]);
       // TODO: update currentSelectedShape to duplicated shape
     };
 
-    // console.log({ diagrams });
+    console.log({ selectionBox });
 
     return (
       <Box ref={containerRef} pos="relative" height="100vh" width="100vw">
@@ -712,7 +695,14 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
           <Box />
         </Flex>
         {currentSelectedShape && (
-          <Box zIndex={1} left={4} pos="absolute" top="90px">
+          <Box
+            zIndex={1}
+            left={4}
+            pos="absolute"
+            top="90px"
+            height="65vh"
+            overflow="auto"
+          >
             <Options
               type={currentSelectedShape.type}
               onAction={(action) => {
@@ -732,7 +722,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
               }}
               nodeAttrs={currentSelectedShape.props}
               onShapeAction={(payload) => {
-                const { setter } = getSetterByType(currentSelectedShape?.type);
                 setCurrentSelectedShape((prevSelectedShape) => ({
                   ...currentSelectedShape,
                   props: { ...(currentSelectedShape || {})?.props, ...payload },
@@ -802,25 +791,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         >
           <Layer>
             <KonvaRect
-              {...{ x: 205, y: 193, height: 140, width: 137 }}
-              stroke="#000"
-              fill="red"
-              draggable
-            />
-            <KonvaCircle
-              {...{ x: 357, y: 238, radius: 84 }}
-              stroke="#000"
-              fill="green"
-              draggable
-            />
-            <KonvaRect
-              {...{ x: 232, y: 255, height: 174, width: 167 }}
-              stroke="#000"
-              fill="blue"
-              draggable
-            />
-
-            <KonvaRect
               ref={backgroundRef}
               x={0}
               y={0}
@@ -879,7 +849,17 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
                 {...getShapeProps(text)}
               />
             ))}
-            <Transformer ref={transformerRef} />
+            <Transformer
+              ref={transformerRef}
+              borderDash={[3, 1]}
+              anchorStroke="#6965db"
+              borderStroke="#6965db"
+              anchorCornerRadius={2}
+              anchorSize={8}
+              rotateLineVisible={false}
+              rotateAnchorOffset={20}
+            />
+            {selectionBox && <KonvaRect {...selectionBox} />}
           </Layer>
         </Stage>
       </Box>

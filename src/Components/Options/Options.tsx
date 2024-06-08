@@ -54,6 +54,8 @@ export default function Options({
       border="1px solid #ddd"
       p={3}
       bg="white"
+      height="100%"
+      overflow="auto"
     >
       <Text fontSize="x-small">Stroke</Text>
       <Flex mt={1} gap={1}>
