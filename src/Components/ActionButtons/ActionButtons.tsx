@@ -3,14 +3,11 @@ import { DrawAction, PAINT_DRAW_OPTIONS } from "../../constants";
 import { IconButton } from "../IconButton";
 
 interface ActionButtonProps {
-  onActionChange: React.Dispatch<React.SetStateAction<DrawAction>>;
-  selectedAction: DrawAction | undefined;
+  onChange: React.Dispatch<React.SetStateAction<DrawAction>>;
+  action: DrawAction | undefined;
 }
 
-export default function ActionButtons({
-  onActionChange,
-  selectedAction,
-}: ActionButtonProps) {
+export default function ActionButtons({ action, onChange }: ActionButtonProps) {
   return (
     <Box
       display="inline-block"
@@ -25,9 +22,9 @@ export default function ActionButtons({
           <IconButton
             label={label}
             icon={icon}
-            isSelected={selectedAction === id}
             keyBind={keyBind}
-            onClick={() => onActionChange(id)}
+            isSelected={action === id}
+            onClick={() => onChange(id)}
             baseBg="none"
           />
         ))}
