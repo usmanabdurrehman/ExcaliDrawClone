@@ -4,10 +4,14 @@ import { Maximize, Minimize, Redo, Undo } from "../../icons";
 
 interface SecondaryActionButtonsProps {
   onActionChange: (action: SecondaryAction) => void;
+  isUndoDisabled: boolean;
+  isRedoDisabled: boolean;
 }
 
 export default function SecondaryActionButtons({
   onActionChange,
+  isUndoDisabled,
+  isRedoDisabled,
 }: SecondaryActionButtonsProps) {
   return (
     <Flex gap={2}>
@@ -34,11 +38,15 @@ export default function SecondaryActionButtons({
           aria-label="undo"
           icon={<Undo />}
           onClick={() => onActionChange(SecondaryAction.Undo)}
+          isDisabled={isUndoDisabled}
+          title="Undo"
         />
         <IconButton
           aria-label="redo"
           icon={<Redo />}
           onClick={() => onActionChange(SecondaryAction.Redo)}
+          isDisabled={isRedoDisabled}
+          title="Redo"
         />
       </ButtonGroup>
     </Flex>

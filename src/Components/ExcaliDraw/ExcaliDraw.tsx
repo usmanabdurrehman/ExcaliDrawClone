@@ -32,7 +32,6 @@ import { ArrowConfig } from "konva/lib/shapes/Arrow";
 import { LineConfig } from "konva/lib/shapes/Line";
 import { CircleConfig } from "konva/lib/shapes/Circle";
 import { RectConfig } from "konva/lib/shapes/Rect";
-import { transform } from "framer-motion";
 import Konva from "konva";
 
 interface ExcaliDrawProps {}
@@ -69,6 +68,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         payload: any;
       }[]
     >([]);
+    const historyIndexRef = useRef(-1);
 
     const [drawAction, setDrawAction] = useState<DrawAction>(
       DrawAction.Scribble
@@ -119,16 +119,45 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       [stageRef, deSelect]
     );
 
+    const updateCanvasHistory = ({
+      type,
+      drawAction,
+      payload,
+      isUpdate,
+    }: {
+      type: CanvasAction;
+      drawAction: DrawAction;
+      payload: any;
+      isUpdate?: boolean;
+    }) => {
+      if (isUpdate) {
+        setCanvasHistory((prevCanvasHistory) => {
+          const canvasHistory = [...prevCanvasHistory];
+          const lastItem = canvasHistory?.at(-1);
+          if (lastItem)
+            canvasHistory[canvasHistory.length - 1] = {
+              ...lastItem,
+              payload: { ...lastItem?.payload, ...payload },
+            } as any;
+          return canvasHistory;
+        });
+        return;
+      }
+      setCanvasHistory((prevCanvasHistory) => [
+        ...prevCanvasHistory,
+        { type, drawAction, payload },
+      ]);
+      historyIndexRef.current += 1;
+    };
+
     const onStageMouseUp = () => {
       isPaintRef.current = false;
-      console.log({ isSelectionRef });
       if (isSelectionRef.current) {
         const shapes = stageRef?.current?.find((node: any) => {
-          console.log({ node });
           return node?.attrs?.name !== DrawAction.Select;
         });
         const selectionBox = stageRef?.current?.find(`.${DrawAction.Select}`);
-        console.log({ selectionBox });
+
         const box = selectionBox?.[0]?.getClientRect();
         const selected = shapes.filter((shape: any) =>
           Konva.Util.haveIntersection(box, shape.getClientRect())
@@ -138,8 +167,24 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         isSelectionRef.current = false;
         setSelectionBox(undefined);
       }
-      if (currentlyDrawnShape)
+      if (currentlyDrawnShape) {
         setDrawings((prevDrawings) => [...prevDrawings, currentlyDrawnShape]);
+        const shouldUpdateCanvasHistory = [
+          DrawAction.Arrow,
+          DrawAction.Circle,
+          DrawAction.Rectangle,
+          DrawAction.Scribble,
+          DrawAction.Text,
+        ].includes(drawAction);
+
+        if (shouldUpdateCanvasHistory) {
+          updateCanvasHistory({
+            type: CanvasAction.Add,
+            drawAction,
+            payload: currentlyDrawnShape,
+          });
+        }
+      }
       setCurrentlyDrawnShape(undefined);
     };
 
@@ -158,7 +203,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       const pos = stage?.getPointerPosition();
       const x = getNumericVal(pos?.x) - stageX;
       const y = getNumericVal(pos?.y) - stageY;
-      console.log({ transformerRef });
       if (
         drawAction === DrawAction.Select &&
         !transformerRef?.current?.nodes()?.length
@@ -183,20 +227,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
 
       const id = uuidv4();
       currentShapeRef.current = id;
-
-      const shouldUpdateCanvasHistory = [
-        DrawAction.Arrow,
-        DrawAction.Circle,
-        DrawAction.Rectangle,
-        DrawAction.Scribble,
-        DrawAction.Text,
-      ].includes(drawAction);
-
-      shouldUpdateCanvasHistory &&
-        setCanvasHistory((prevCanvasHistory) => [
-          ...prevCanvasHistory,
-          { type: CanvasAction.Add, drawAction, payload: { id } },
-        ]);
 
       switch (drawAction) {
         case DrawAction.Text: {
@@ -355,67 +385,129 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       }
     }
 
-    const onTransformShapeStart = useCallback(
-      (e: KonvaEventObject<MouseEvent>) => {
-        setCanvasHistory((prevCanvasHistory) => [
-          ...prevCanvasHistory,
-          {
-            type: CanvasAction.Resize,
-            drawAction: e.target.attrs.name,
-            payload: {
-              id: e.target.attrs.id,
-              scaleX: e.target.attrs.scaleX,
-              scaleY: e.target.attrs.scaleY,
-            },
+    const onTransformShapeStart = (e: KonvaEventObject<MouseEvent>) => {
+      updateCanvasHistory({
+        type: CanvasAction.Resize,
+        drawAction: e.target.attrs.name,
+        payload: {
+          id: e.target.attrs.id,
+          oldParams: {
+            scaleX: e.target.attrs.scaleX,
+            scaleY: e.target.attrs.scaleY,
           },
-        ]);
-      },
-      []
-    );
+        },
+      });
+    };
 
-    const onDragShapeStart = useCallback((e: KonvaEventObject<MouseEvent>) => {
-      setCanvasHistory((prevCanvasHistory) => [
-        ...prevCanvasHistory,
-        {
-          type: CanvasAction.Drag,
-          drawAction: e.target.attrs.name,
-          payload: {
+    const onDragShapeStart = (e: KonvaEventObject<MouseEvent>) => {
+      updateCanvasHistory({
+        type: CanvasAction.Drag,
+        drawAction: e.target.attrs.name,
+        payload: {
+          id: e.target.attrs.id,
+          oldParams: {
+            x: e.target.attrs.x,
+            y: e.target.attrs.y,
+          },
+        },
+      });
+    };
+
+    const onDragShapeEnd = (e: KonvaEventObject<MouseEvent>) => {
+      const id = e.target?.attrs?.id;
+
+      updateCanvasHistory({
+        type: CanvasAction.Drag,
+        drawAction: e.target.attrs.name,
+        payload: {
+          newParams: {
             id: e.target.attrs.id,
             x: e.target.attrs.x,
             y: e.target.attrs.y,
           },
         },
-      ]);
-    }, []);
+        isUpdate: true,
+      });
 
-    const onUndoClick = useCallback(() => {
-      const canvasHistoryPayload = [...canvasHistory];
-      const lastAction = canvasHistoryPayload.pop();
-      setCanvasHistory(canvasHistoryPayload);
+      setDrawings((prevRecords) =>
+        prevRecords.map((record) =>
+          record.id === id
+            ? { ...record, x: e.target.x(), y: e.target.y() }
+            : record
+        )
+      );
+    };
+
+    const onTransformShapeEnd = (e: KonvaEventObject<MouseEvent>) => {
+      const id = e.target?.attrs?.id;
+
+      updateCanvasHistory({
+        type: CanvasAction.Resize,
+        drawAction: e.target.attrs.name,
+        payload: {
+          newParams: {
+            id: e.target.attrs.id,
+            scaleX: e.target.attrs.scaleX,
+            scaleY: e.target.attrs.scaleY,
+          },
+        },
+        isUpdate: true,
+      });
+
+      setDrawings((prevRecords) =>
+        prevRecords.map((record) =>
+          record.id === id
+            ? {
+                ...record,
+                scaleX: e.target.attrs.scaleX,
+                scaleY: e.target.attrs.scaleY,
+              }
+            : record
+        )
+      );
+    };
+
+    const onHistory = (isUndo = false) => {
+      let lastAction =
+        canvasHistory[
+          isUndo ? historyIndexRef.current-- : ++historyIndexRef.current
+        ];
 
       const id = lastAction?.payload?.id;
       switch (lastAction?.type) {
         case CanvasAction.Add: {
           transformerRef?.current?.nodes([]);
-          setDrawings((prevRecords) =>
-            prevRecords.filter((prevRecord) => prevRecord.id !== id)
-          );
+          if (isUndo)
+            setDrawings((prevRecords) =>
+              prevRecords.filter((prevRecord) => prevRecord.id !== id)
+            );
+          else
+            setDrawings((prevRecords) => [...prevRecords, lastAction?.payload]);
           break;
         }
         case CanvasAction.Delete: {
-          setDrawings((prevRecords) => [
-            ...prevRecords,
-            lastAction?.payload?.record,
-          ]);
+          if (isUndo)
+            setDrawings((prevRecords) => [...prevRecords, lastAction?.payload]);
+          else
+            setDrawings((prevRecords) =>
+              prevRecords.filter((prevRecord) => prevRecord.id !== id)
+            );
           break;
         }
         case CanvasAction.Resize: {
           setDrawings((prevRecords) =>
-            prevRecords.map((prevRecord) =>
-              prevRecord.id === id
-                ? { ...prevRecord, ...lastAction?.payload }
-                : prevRecord
-            )
+            prevRecords.map((prevRecord) => {
+              if (prevRecord.id === id) {
+                const newObj = {
+                  ...prevRecord,
+                  ...(isUndo
+                    ? lastAction?.payload?.oldParams
+                    : lastAction?.payload?.newParams),
+                };
+                return newObj;
+              }
+              return prevRecord;
+            })
           );
           break;
         }
@@ -423,28 +515,28 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
           setDrawings((prevRecords) =>
             prevRecords.map((prevRecord) =>
               prevRecord.id === id
-                ? { ...prevRecord, ...lastAction?.payload }
+                ? {
+                    ...prevRecord,
+                    ...(isUndo
+                      ? lastAction?.payload?.oldParams
+                      : lastAction?.payload?.newParams),
+                  }
                 : prevRecord
             )
           );
           break;
         }
       }
-    }, [canvasHistory]);
+    };
 
     const onDeleteShape = useCallback(() => {
       const record = drawings?.find(
         (record) => record.id === currentSelectedShape?.id
       );
-      setCanvasHistory((prevCanvasHistory) => {
-        return [
-          ...prevCanvasHistory,
-          {
-            type: CanvasAction.Delete,
-            drawAction: currentSelectedShape?.type,
-            payload: { id: currentSelectedShape?.id, record },
-          },
-        ];
+      updateCanvasHistory({
+        type: CanvasAction.Delete,
+        drawAction: currentSelectedShape?.type as DrawAction,
+        payload: record,
       });
 
       transformerRef?.current?.nodes([]);
@@ -460,30 +552,28 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       setTexts([]);
     }, []);
 
-    const onStageClick = useCallback(
-      (e: KonvaEventObject<MouseEvent>) => {
-        if (
-          ![DrawAction.ZoomIn, DrawAction.ZoomOut].includes(
-            drawAction as DrawAction
-          )
-        )
-          return;
+    console.log({ stageRef });
 
-        e.evt.preventDefault();
+    const onZoom = useCallback(
+      (action: SecondaryAction) => {
         const stage = stageRef?.current;
 
         const oldScale = getNumericVal(stage?.scaleX());
-        const pointer = stage?.getPointerPosition() || { x: 0, y: 0 };
+        const pointer = {
+          x: stage?.attrs?.width / 2,
+          y: stage?.attrs?.height / 2,
+        };
 
         const mousePointTo = {
           x: (pointer?.x - getNumericVal(stage?.x())) / oldScale,
           y: (pointer?.y - getNumericVal(stage?.y())) / oldScale,
         };
 
-        const direction = drawAction === DrawAction.ZoomIn ? 1 : -1;
+        const direction = action === SecondaryAction.ZoomIn ? 1 : -1;
 
-        const newScale =
+        let newScale =
           direction > 0 ? oldScale * SCALE_BY : oldScale / SCALE_BY;
+        if (action === SecondaryAction.ResetZoom) newScale = 1;
 
         stage?.scale({ x: newScale, y: newScale });
 
@@ -495,39 +585,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         stage?.position(newPos);
       },
       [drawAction, stageRef]
-    );
-
-    const onDragShapeEnd = useCallback((e: KonvaEventObject<MouseEvent>) => {
-      const type = e.target?.attrs?.name;
-      const id = e.target?.attrs?.id;
-
-      setDrawings((prevRecords) =>
-        prevRecords.map((record) =>
-          record.id === id
-            ? { ...record, x: e.target.x(), y: e.target.y() }
-            : record
-        )
-      );
-    }, []);
-
-    const onTransformShapeEnd = useCallback(
-      (e: KonvaEventObject<MouseEvent>) => {
-        const type = e.target?.attrs?.name;
-        const id = e.target?.attrs?.id;
-
-        setDrawings((prevRecords) =>
-          prevRecords.map((record) =>
-            record.id === id
-              ? {
-                  ...record,
-                  scaleX: e.target.attrs.scaleX,
-                  scaleY: e.target.attrs.scaleY,
-                }
-              : record
-          )
-        );
-      },
-      []
     );
 
     const onImportImageSelect = useCallback(
@@ -552,44 +609,18 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       downloadURI(dataURL, "image.png");
     }, []);
 
-    const onClearOptionClick = useCallback(
-      (action: DrawAction) => {
-        switch (action) {
-          case DrawAction.Clear: {
-            onClear();
-            break;
-          }
-          case DrawAction.Delete: {
-            onDeleteShape();
-            break;
-          }
-          case DrawAction.Undo: {
-            onUndoClick();
-            break;
-          }
+    const onAction = useCallback((action: DrawAction) => {
+      switch (action) {
+        case DrawAction.Rectangle:
+        case DrawAction.Circle:
+        case DrawAction.Scribble:
+        case DrawAction.Arrow:
+        case DrawAction.Select: {
+          setDrawAction(action);
+          break;
         }
-      },
-      [onClear, onDeleteShape, onUndoClick]
-    );
-
-    const onAction = useCallback(
-      (action: DrawAction) => {
-        switch (action) {
-          case DrawAction.Rectangle:
-          case DrawAction.Circle:
-          case DrawAction.Scribble:
-          case DrawAction.Arrow:
-          case DrawAction.Select: {
-            setDrawAction(action);
-            break;
-          }
-          default: {
-            onClearOptionClick(action);
-          }
-        }
-      },
-      [onClearOptionClick]
-    );
+      }
+    }, []);
 
     useKeyBindings({ onAction, isWritingInProgress: !!textPosition });
     const backgroundRef = useRef<any>(null);
@@ -624,28 +655,18 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     //   downloadDrawingState();
     // }, [downloadDrawingState]);
 
-    const getShapeProps = useCallback(
-      (shape: NodeConfig) => ({
-        key: shape.id,
-        id: shape.id,
-        onDragStart: onDragShapeStart,
-        onDragEnd: onDragShapeEnd,
-        onTransformStart: onTransformShapeStart,
-        onTransformEnd: onTransformShapeEnd,
-        onClick: onShapeClick,
-        scaleX: shape.scaleX,
-        scaleY: shape.scaleY,
-        draggable: isDraggable,
-      }),
-      [
-        onDragShapeStart,
-        onDragShapeEnd,
-        onTransformShapeStart,
-        onTransformShapeEnd,
-        onShapeClick,
-        isDraggable,
-      ]
-    );
+    const getShapeProps = (shape: NodeConfig) => ({
+      key: shape.id,
+      id: shape.id,
+      onDragStart: onDragShapeStart,
+      onDragEnd: onDragShapeEnd,
+      onTransformStart: onTransformShapeStart,
+      onTransformEnd: onTransformShapeEnd,
+      onClick: onShapeClick,
+      scaleX: shape.scaleX,
+      scaleY: shape.scaleY,
+      draggable: isDraggable,
+    });
 
     useEffect(() => {
       if (containerRef.current) {
@@ -654,8 +675,21 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       }
     }, [containerRef]);
 
-    const onSecondaryActionChange = useCallback((action: SecondaryAction) => {},
-    []);
+    const onSecondaryActionChange = (action: SecondaryAction) => {
+      switch (action) {
+        case SecondaryAction.Undo: {
+          onHistory(true);
+          break;
+        }
+        case SecondaryAction.Redo: {
+          onHistory();
+          break;
+        }
+        default: {
+          onZoom(action);
+        }
+      }
+    };
 
     const onDuplicate = () => {
       const record = drawings?.find(
@@ -673,8 +707,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       ]);
       // TODO: update currentSelectedShape to duplicated shape
     };
-
-    console.log({ selectionBox });
 
     return (
       <Box ref={containerRef} pos="relative" height="100vh" width="100vw">
@@ -770,7 +802,13 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
           </Box>
         )}
         <Box zIndex={1} left={4} pos="absolute" bottom="20px">
-          <SecondaryActionButtons onActionChange={onSecondaryActionChange} />
+          <SecondaryActionButtons
+            isUndoDisabled={historyIndexRef.current === -1}
+            isRedoDisabled={
+              historyIndexRef.current === canvasHistory?.length - 1
+            }
+            onActionChange={onSecondaryActionChange}
+          />
         </Box>
 
         <Stage
@@ -779,7 +817,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
           draggable={isStageDraggable}
           onMouseDown={onStageMouseDown}
           onMouseMove={onStageMouseMove}
-          onClick={onStageClick}
+          // onClick={onStageClick}
           x={stageX}
           y={stageY}
           onDragEnd={(e: KonvaEventObject<MouseEvent>) => {
