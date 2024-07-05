@@ -9,15 +9,20 @@ import {
 } from "@chakra-ui/react";
 import { NodeConfig } from "konva/lib/Node";
 import {
+  ARROW_HEADS_OPTIONS,
   DrawAction,
+  FONT_FAMILY_OPTIONS,
+  FONT_SIZE_OPTIONS,
   LayerOptions,
   LAYER_OPTIONS,
   MiscActions,
   MISC_ACTIONS_OPTIONS,
   SHAPE_EDGES_OPTIONS,
   SHAPE_FILL_OPTIONS,
+  SLOPPINESS_OPTIONS,
   STROKE_STYLE_OPTIONS,
   STROKE_WIDTH_OPTIONS,
+  TEXT_ALIGN_OPTIONS,
 } from "../../constants";
 import { IconButton } from "../IconButton";
 
@@ -99,7 +104,32 @@ export default function Options({ type }: OptionsProps) {
         ))}
       </Flex>
       <Text fontSize="x-small" mt={3}>
-        Stroke Width
+        Font size
+      </Text>
+      <Flex mt={1} gap={2}>
+        {FONT_SIZE_OPTIONS.map(({ id, label, icon }) => (
+          <IconButton label={label} icon={icon} />
+        ))}
+      </Flex>
+      <Text fontSize="x-small" mt={3}>
+        Font family
+      </Text>
+      <Flex mt={1} gap={2}>
+        {FONT_FAMILY_OPTIONS.map(({ id, label, icon }) => (
+          <IconButton label={label} icon={icon} />
+        ))}
+      </Flex>
+
+      <Text fontSize="x-small" mt={3}>
+        Text align
+      </Text>
+      <Flex mt={1} gap={2}>
+        {TEXT_ALIGN_OPTIONS.map(({ id, label, icon }) => (
+          <IconButton label={label} icon={icon} />
+        ))}
+      </Flex>
+      <Text fontSize="x-small" mt={3}>
+        Stroke width
       </Text>
       <Flex mt={1} gap={2}>
         {STROKE_WIDTH_OPTIONS.map(({ id, label, icon }) => (
@@ -107,10 +137,18 @@ export default function Options({ type }: OptionsProps) {
         ))}
       </Flex>
       <Text fontSize="x-small" mt={3}>
-        Stroke Style
+        Stroke style
       </Text>
       <Flex mt={1} gap={2}>
         {STROKE_STYLE_OPTIONS.map(({ id, label, icon }) => (
+          <IconButton label={label} icon={icon} />
+        ))}
+      </Flex>
+      <Text fontSize="x-small" mt={3}>
+        Sloppiness
+      </Text>
+      <Flex mt={1} gap={2}>
+        {SLOPPINESS_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
       </Flex>
@@ -126,6 +164,14 @@ export default function Options({ type }: OptionsProps) {
           </Flex>
         </>
       )}
+      <Text fontSize="x-small" mt={3}>
+        Arrowheads
+      </Text>
+      <Flex mt={1} gap={2}>
+        {ARROW_HEADS_OPTIONS.map(({ id, label, icon }) => (
+          <IconButton label={label} icon={icon} />
+        ))}
+      </Flex>
       <Text fontSize="x-small" mt={3}>
         Opacity
       </Text>

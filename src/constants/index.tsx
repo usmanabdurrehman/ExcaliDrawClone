@@ -24,6 +24,24 @@ import {
   SendBackward,
   SendForward,
   SendToFront,
+  FillHachure,
+  FillCrossHatch,
+  FillSolid,
+  AlignLeft,
+  AlignRight,
+  AlignCenter,
+  SloppinessArchitect,
+  SloppinessArtist,
+  SloppinessCartoonist,
+  FontNormal,
+  FontCode,
+  FontSmall,
+  FontMedium,
+  FontLarge,
+  FontXtraLarge,
+  LineHead,
+  ArrowHead,
+  EditLine,
 } from "../icons";
 
 export enum DrawAction {
@@ -83,16 +101,94 @@ export const PAINT_DRAW_OPTIONS = [
   { id: DrawAction.Line, label: "Line--L or 6", icon: <Line />, keyBind: "6" },
   {
     id: DrawAction.Scribble,
-    label: "Draw--P or 8",
+    label: "Draw--P or 7",
     icon: <Pencil />,
-    keyBind: "8",
+    keyBind: "7",
   },
-  { id: DrawAction.Text, label: "Text--T or 9", icon: <Text />, keyBind: "9" },
+  { id: DrawAction.Text, label: "Text--T or 8", icon: <Text />, keyBind: "8" },
   {
     id: DrawAction.Eraser,
     label: "Eraser--E or 0",
     icon: <Eraser />,
     keyBind: "0",
+  },
+];
+
+export enum FontSize {
+  Small = "small",
+  Medium = "medium",
+  Large = "large",
+  XtraLarge = "xtraLarge",
+}
+
+export const FONT_SIZE_OPTIONS = [
+  {
+    id: FontSize.Small,
+    label: "Small",
+    icon: <FontSmall />,
+  },
+  {
+    id: FontSize.Medium,
+    label: "Medium",
+    icon: <FontMedium />,
+  },
+  {
+    id: FontSize.Large,
+    label: "Large",
+    icon: <FontLarge />,
+  },
+  {
+    id: FontSize.XtraLarge,
+    label: "Xtra Large",
+    icon: <FontXtraLarge />,
+  },
+];
+
+export enum FontFamily {
+  HandDrawn = "handDrawn",
+  Normal = "normal",
+  Code = "code",
+}
+
+export const FONT_FAMILY_OPTIONS = [
+  {
+    id: FontFamily.HandDrawn,
+    label: "HandDrawn",
+    icon: <Pencil />,
+  },
+  {
+    id: FontFamily.Normal,
+    label: "Normal",
+    icon: <FontNormal />,
+  },
+  {
+    id: FontFamily.Code,
+    label: "Code",
+    icon: <FontCode />,
+  },
+];
+
+enum TextAlign {
+  Left = "left",
+  Center = "center",
+  Right = "right",
+}
+
+export const TEXT_ALIGN_OPTIONS = [
+  {
+    id: TextAlign.Left,
+    label: "Left Align",
+    icon: <AlignLeft />,
+  },
+  {
+    id: TextAlign.Center,
+    label: "Center Align",
+    icon: <AlignCenter />,
+  },
+  {
+    id: TextAlign.Right,
+    label: "Right Align",
+    icon: <AlignRight />,
   },
 ];
 
@@ -106,17 +202,17 @@ export const SHAPE_FILL_OPTIONS = [
   {
     id: ShapeFill.Hachure,
     label: "Hachure",
-    icon: <Hand />,
+    icon: <FillHachure />,
   },
   {
     id: ShapeFill.CrossHatch,
     label: "Cross-Hatch",
-    icon: <Hand />,
+    icon: <FillCrossHatch />,
   },
   {
     id: ShapeFill.Solid,
     label: "Solid",
-    icon: <Hand />,
+    icon: <FillSolid />,
   },
 ];
 
@@ -168,6 +264,30 @@ export const STROKE_STYLE_OPTIONS = [
   },
 ];
 
+export enum Sloppiness {
+  Architect = "architect",
+  Artist = "artist",
+  Cartoonist = "cartoonist",
+}
+
+export const SLOPPINESS_OPTIONS = [
+  {
+    id: Sloppiness.Architect,
+    label: "Architect",
+    icon: <SloppinessArchitect />,
+  },
+  {
+    id: Sloppiness.Artist,
+    label: "Artist",
+    icon: <SloppinessArtist />,
+  },
+  {
+    id: Sloppiness.Cartoonist,
+    label: "Cartoonist",
+    icon: <SloppinessCartoonist />,
+  },
+];
+
 export enum ShapeEdges {
   Sharp = 0,
   Round = 12,
@@ -190,6 +310,7 @@ export enum MiscActions {
   Duplicate = "Duplicate",
   Delete = "Delete",
   Link = "Link",
+  EditArrow = "EditArrow",
 }
 
 export const MISC_ACTIONS_OPTIONS = [
@@ -207,6 +328,29 @@ export const MISC_ACTIONS_OPTIONS = [
     id: MiscActions.Link,
     label: "Link",
     icon: <Link />,
+  },
+  {
+    id: MiscActions.EditArrow,
+    label: "Edit Arrow",
+    icon: <EditLine />,
+  },
+];
+
+export enum ArrowHeads {
+  Line = "Line",
+  Arrow = "Arrow",
+}
+
+export const ARROW_HEADS_OPTIONS = [
+  {
+    id: ArrowHeads.Line,
+    label: "Line",
+    icon: <LineHead />,
+  },
+  {
+    id: ArrowHeads.Arrow,
+    label: "Arrow",
+    icon: <ArrowHead />,
   },
 ];
 
@@ -239,16 +383,6 @@ export const LAYER_OPTIONS = [
     icon: <SendToFront />,
   },
 ];
-
-export const BASE_FONT_SIZE = 16;
-export const SCALE_BY = 1.1;
-
-export enum CanvasAction {
-  Add = "add",
-  Delete = "delete",
-  Resize = "resize",
-  Drag = "drag",
-}
 
 export const ICON_FILL_COLOR = "#030064";
 

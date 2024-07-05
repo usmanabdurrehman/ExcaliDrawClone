@@ -8,12 +8,12 @@ export default function EditLine() {
       role="img"
       viewBox="0 0 24 24"
       fill="none"
-      stroke-width="2"
+      strokeWidth="2"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g stroke-width="1.5">
+      <g strokeWidth="1.5">
         <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
         <path d="M17 3m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"></path>
         <path d="M3 17m0 1a1 1 0 0 1 1 -1h2a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-2a1 1 0 0 1 -1 -1z"></path>

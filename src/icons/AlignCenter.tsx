@@ -8,16 +8,16 @@ export default function AlignCenter() {
       role="img"
       viewBox="0 0 24 24"
       fill="none"
-      stroke-width="2"
+      strokeWidth="2"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <g
         stroke="currentColor"
         fill="none"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       >
         <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
         <line x1="4" y1="8" x2="20" y2="8"></line>

@@ -1,5 +1,6 @@
 import { Box, IconButton as ChakraIconButton, Text } from "@chakra-ui/react";
 import React from "react";
+import { ICON_FILL_COLOR } from "../../constants";
 
 export const IconButton = ({
   icon,
@@ -25,7 +26,7 @@ export const IconButton = ({
         size="sm"
         fontSize="xs"
         bg={isSelected ? "#e0dfff" : baseBg}
-        color={isSelected ? "#4440bf" : "black"}
+        color={isSelected ? ICON_FILL_COLOR : "black"}
         transition={"none"}
         onClick={onClick}
       />
@@ -33,8 +34,8 @@ export const IconButton = ({
         <Text
           fontSize="xx-small"
           pos="absolute"
-          bottom="1px"
-          right="1px"
+          bottom="2px"
+          right="3px"
           color={isSelected ? "#4440bf" : "#aaa"}
         >
           {keyBind}

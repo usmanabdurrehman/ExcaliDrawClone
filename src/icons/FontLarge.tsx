@@ -9,16 +9,16 @@ export default function FontLarge() {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g clip-path="url(#a)">
+      <g clipPath="url(#a)">
         <path
           d="M5 16.667V3.333L10 15l5-11.667v13.334"
           stroke="currentColor"
-          stroke-width="1.25"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="1.25"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         ></path>
       </g>
       <defs>

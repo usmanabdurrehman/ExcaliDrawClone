@@ -6,7 +6,7 @@ export default function LineHead() {
       <path
         d="M6 10H34"
         stroke="currentColor"
-        stroke-width="2"
+        strokeWidth="2"
         fill="none"
       ></path>
     </svg>

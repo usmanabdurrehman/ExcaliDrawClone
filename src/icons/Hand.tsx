@@ -6,12 +6,12 @@ export default function Hand() {
       role="img"
       viewBox="0 0 24 24"
       fill="none"
-      stroke-width="2"
+      strokeWidth="2"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g stroke-width="1.25">
+      <g strokeWidth="1.25">
         <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
         <path d="M8 13v-7.5a1.5 1.5 0 0 1 3 0v6.5"></path>
         <path d="M11 5.5v-2a1.5 1.5 0 1 1 3 0v8.5"></path>

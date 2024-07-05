@@ -1,25 +1,15 @@
 import { Box, Flex } from "@chakra-ui/react";
-import { KonvaEventObject, Node, NodeConfig } from "konva/lib/Node";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { KonvaEventObject, NodeConfig } from "konva/lib/Node";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Stage,
   Layer,
   Rect as KonvaRect,
-  Image as KonvaImage,
   Circle as KonvaCircle,
   Line as KonvaLine,
   Arrow as KonvaArrow,
-  Text as KonvaText,
-  Transformer,
 } from "react-konva";
-import {
-  CanvasAction,
-  DrawAction,
-  LayerOptions,
-  MiscActions,
-  SCALE_BY,
-  SecondaryAction,
-} from "../../constants";
+import { DrawAction } from "../../constants";
 import { getNumericVal } from "../../utilities";
 import { ActionButtons } from "../ActionButtons";
 import { Menu } from "../Menu";
@@ -30,19 +20,14 @@ import { ArrowConfig } from "konva/lib/shapes/Arrow";
 import { LineConfig } from "konva/lib/shapes/Line";
 import { CircleConfig } from "konva/lib/shapes/Circle";
 import { RectConfig } from "konva/lib/shapes/Rect";
-import Konva from "konva";
 
 interface ExcaliDrawProps {}
 
 export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
   function ExcaliDraw({}) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const currentShapeRef = useRef<string>();
     const isPaintRef = useRef(false);
-    const isSelectionRef = useRef(false);
     const stageRef = useRef<any>();
-
-    const [{ x: stageX, y: stageY }, setStageXY] = useState({ x: 0, y: 0 });
 
     const [drawings, setDrawings] = useState<NodeConfig[]>([]);
     const [currentlyDrawnShape, setCurrentlyDrawnShape] =
@@ -74,39 +59,39 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     const onStageMouseDown = (e: KonvaEventObject<MouseEvent>) => {
       const stage = stageRef?.current;
       const pos = stage?.getPointerPosition();
-      const x = getNumericVal(pos?.x) - stageX;
-      const y = getNumericVal(pos?.y) - stageY;
+      const x = getNumericVal(pos?.x);
+      const y = getNumericVal(pos?.y);
 
       isPaintRef.current = true;
 
       const id = uuidv4();
-      currentShapeRef.current = id;
+
+      const commonProps = {
+        id,
+        key: id,
+        scaleX: 1,
+        scaleY: 1,
+      };
 
       switch (drawAction) {
-        case DrawAction.Text: {
-          break;
-        }
         case DrawAction.Scribble:
+        case DrawAction.Line:
           updateCurrentDrawnShape<LineConfig>(() => ({
-            id,
+            ...commonProps,
+            lineCap: "round",
+            lineJoin: "round",
             points: [x, y, x, y],
-            color,
-            scaleX: 1,
-            scaleY: 1,
             stroke: color,
-            name: DrawAction.Scribble,
+            name: DrawAction.Line,
           }));
 
           break;
         case DrawAction.Circle: {
           updateCurrentDrawnShape<CircleConfig>(() => ({
-            id,
+            ...commonProps,
             radius: 1,
             x,
             y,
-            color,
-            scaleX: 1,
-            scaleY: 1,
             stroke: color,
             name: DrawAction.Circle,
           }));
@@ -116,15 +101,12 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         case DrawAction.Rectangle:
         case DrawAction.Diamond: {
           updateCurrentDrawnShape<RectConfig>(() => ({
+            ...commonProps,
             height: 1,
             width: 1,
             x,
             y,
-            color,
-            scaleX: 1,
-            scaleY: 1,
             stroke: color,
-            id,
             rotationDeg: drawAction === DrawAction.Diamond ? 45 : 0,
             name: DrawAction.Rectangle,
           }));
@@ -132,12 +114,10 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         }
         case DrawAction.Arrow: {
           updateCurrentDrawnShape<ArrowConfig>(() => ({
-            id,
+            ...commonProps,
             points: [x, y, x, y],
             fill: color,
             stroke: color,
-            scaleX: 1,
-            scaleY: 1,
             name: DrawAction.Arrow,
           }));
           break;
@@ -146,21 +126,29 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     };
 
     const onStageMouseMove = () => {
-      if (
-        (drawAction === DrawAction.Select && !isSelectionRef.current) ||
-        !isPaintRef.current
-      )
-        return;
+      if (!isPaintRef.current) return;
 
       const stage = stageRef?.current;
       const pos = stage?.getPointerPosition();
-      const x = getNumericVal(pos?.x) - stageX;
-      const y = getNumericVal(pos?.y) - stageY;
+      const x = getNumericVal(pos?.x);
+      const y = getNumericVal(pos?.y);
 
       switch (drawAction) {
         case DrawAction.Scribble: {
           updateCurrentDrawnShape<LineConfig>((prevScribble) => ({
             points: [...(prevScribble.points || []), x, y],
+          }));
+
+          break;
+        }
+        case DrawAction.Line: {
+          updateCurrentDrawnShape<LineConfig>((prevLine) => ({
+            points: [
+              prevLine?.points?.[0] || 0,
+              prevLine?.points?.[1] || 0,
+              x,
+              y,
+            ],
           }));
 
           break;
@@ -183,6 +171,15 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
           break;
         }
         case DrawAction.Diamond: {
+          updateCurrentDrawnShape<RectConfig>((prevRectangle) => {
+            const height = y - (prevRectangle.y || 0);
+            const width = x - (prevRectangle.x || 0);
+            const maxMeasure = Math.max(height, width);
+            return {
+              height: maxMeasure,
+              width: maxMeasure,
+            };
+          });
           break;
         }
         case DrawAction.Arrow: {
@@ -195,32 +192,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       }
     };
 
-    const isStageDraggable = drawAction === DrawAction.Move;
-
-    let mouseCursor;
-    switch (drawAction) {
-      case DrawAction.Move: {
-        mouseCursor = "grab";
-        break;
-      }
-      case DrawAction.ZoomIn: {
-        mouseCursor = "zoom-in";
-        break;
-      }
-      case DrawAction.ZoomOut: {
-        mouseCursor = "zoom-out";
-        break;
-      }
-    }
-
     const backgroundRef = useRef<any>(null);
-
-    const getShapeProps = (shape: NodeConfig) => ({
-      key: shape.id,
-      id: shape.id,
-      scaleX: shape.scaleX,
-      scaleY: shape.scaleY,
-    });
 
     useEffect(() => {
       if (containerRef.current) {
@@ -228,9 +200,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         stageRef?.current?.height(containerRef.current.offsetHeight);
       }
     }, [containerRef]);
-
-    const image = new Image(300, 300);
-    image.src = "./transparentFill.png";
 
     return (
       <Box ref={containerRef} pos="relative" height="100vh" width="100vw">
@@ -266,11 +235,8 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         <Stage
           ref={stageRef}
           onMouseUp={onStageMouseUp}
-          draggable={isStageDraggable}
           onMouseDown={onStageMouseDown}
           onMouseMove={onStageMouseMove}
-          x={stageX}
-          y={stageY}
         >
           <Layer>
             <KonvaRect
@@ -284,28 +250,16 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
 
             {[...drawings, currentlyDrawnShape].map((drawing) => {
               if (drawing?.name === DrawAction.Rectangle) {
-                return <KonvaRect {...drawing} {...getShapeProps(drawing)} />;
+                return <KonvaRect {...drawing} />;
               }
               if (drawing?.name === DrawAction.Circle) {
-                return <KonvaCircle {...drawing} {...getShapeProps(drawing)} />;
+                return <KonvaCircle {...drawing} />;
               }
-              if (drawing?.name === DrawAction.Scribble) {
-                return (
-                  <KonvaLine
-                    lineCap="round"
-                    lineJoin="round"
-                    {...drawing}
-                    {...getShapeProps(drawing)}
-                  />
-                );
+              if (drawing?.name === DrawAction.Line) {
+                return <KonvaLine {...drawing} />;
               }
               if (drawing?.name === DrawAction.Arrow) {
-                return (
-                  <KonvaArrow
-                    {...(drawing as ArrowConfig)}
-                    {...getShapeProps(drawing)}
-                  />
-                );
+                return <KonvaArrow {...(drawing as ArrowConfig)} />;
               }
               return null;
             })}

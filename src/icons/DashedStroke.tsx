@@ -8,12 +8,12 @@ export default function DashedStroke() {
       role="img"
       viewBox="0 0 24 24"
       fill="none"
-      stroke-width="2"
+      strokeWidth="2"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g stroke-width="2">
+      <g strokeWidth="2">
         <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
         <path d="M5 12h2"></path>
         <path d="M17 12h2"></path>

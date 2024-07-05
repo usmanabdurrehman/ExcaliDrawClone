@@ -9,10 +9,10 @@ export default function SharpEdges() {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <svg stroke-width="1.5">
+      <svg strokeWidth="1.5">
         <path d="M3.33334 9.99998V6.66665C3.33334 6.04326 3.33403 4.9332 3.33539 3.33646C4.95233 3.33436 6.06276 3.33331 6.66668 3.33331H10"></path>
         <path d="M13.3333 3.33331V3.34331"></path>
         <path d="M16.6667 3.33331V3.34331"></path>
