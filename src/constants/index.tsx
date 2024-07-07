@@ -42,11 +42,17 @@ import {
   LineHead,
   ArrowHead,
   EditLine,
+  Open,
+  Save,
+  ExportImage,
+  Image,
+  LockClosed,
+  LockOpen,
 } from "../icons";
 
 export enum DrawAction {
-  ZoomOut = "zoomOut",
-  ZoomIn = "zoomIn",
+  Lock = "lock",
+  Divider = "divider",
   Move = "move",
   Select = "select",
   Text = "text",
@@ -56,13 +62,18 @@ export enum DrawAction {
   Scribble = "freedraw",
   Arrow = "arrow",
   Line = "line",
-  Delete = "delete",
-  Clear = "clear",
-  Undo = "undo",
   Eraser = "eraser",
+  Image = "Image",
 }
 
 export const PAINT_DRAW_OPTIONS = [
+  {
+    id: DrawAction.Lock,
+    label: "Keep selected tool active after drawing--Q",
+    icon: <LockOpen />,
+    selectedIcon: <LockClosed />,
+  },
+  { id: DrawAction.Divider },
   {
     id: DrawAction.Move,
     label: "Hand(Panning tool)--H",
@@ -106,6 +117,12 @@ export const PAINT_DRAW_OPTIONS = [
     keyBind: "7",
   },
   { id: DrawAction.Text, label: "Text--T or 8", icon: <Text />, keyBind: "8" },
+  {
+    id: DrawAction.Image,
+    label: "Insert Image 9",
+    icon: <Image />,
+    keyBind: "9",
+  },
   {
     id: DrawAction.Eraser,
     label: "Eraser--E or 0",
@@ -385,6 +402,55 @@ export const LAYER_OPTIONS = [
 ];
 
 export const ICON_FILL_COLOR = "#030064";
+export const STROKE_COLORS = [
+  "#1e1e1e",
+  "#e03131",
+  "#2f9e44",
+  "#1971c2",
+  "#f08c00",
+];
+
+export const BACKGROUND_COLORS = ["#ffc9c9", "#b2f2bb", "#a5d8ff", "#ffec99"];
+
+export const CANVAS_BG_COLORS = [
+  "#ffffff",
+  "#f8f9fa",
+  "#f5faff",
+  "#fffce8",
+  "#fdf8f6",
+];
+
+export enum MenuOption {
+  Open = "open",
+  Save = "save",
+  Export = "export",
+  Reset = "reset",
+}
+
+export const MENU_OPTIONS = [
+  {
+    id: MenuOption.Open,
+    label: "Open",
+    icon: <Open />,
+    keyBind: "Ctrl+O",
+  },
+  {
+    id: MenuOption.Save,
+    label: "Save",
+    icon: <Save />,
+  },
+  {
+    id: MenuOption.Export,
+    label: "Export Image",
+    icon: <ExportImage />,
+    keyBind: "Ctrl+Shift+E",
+  },
+  {
+    id: MenuOption.Reset,
+    label: "Reset Canvas",
+    icon: <Trash />,
+  },
+];
 
 export enum SecondaryAction {
   Undo = "undo",

@@ -1,6 +1,12 @@
 import { Box, Flex } from "@chakra-ui/react";
 import { KonvaEventObject, NodeConfig } from "konva/lib/Node";
-import React, { useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Stage,
   Layer,
@@ -38,94 +44,100 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     );
     const color = "#000";
 
-    const onStageMouseUp = () => {
+    const onStageMouseUp = useCallback(() => {
       isPaintRef.current = false;
 
       if (currentlyDrawnShape) {
         setDrawings((prevDrawings) => [...prevDrawings, currentlyDrawnShape]);
+        setCurrentlyDrawnShape(undefined);
       }
-      setCurrentlyDrawnShape(undefined);
-    };
+    }, [currentlyDrawnShape]);
 
-    const updateCurrentDrawnShape = <T,>(updaterFn: (payload: T) => T) => {
-      setCurrentlyDrawnShape((prevDrawnShape) => {
-        return {
-          ...(prevDrawnShape || {}),
-          ...updaterFn(prevDrawnShape as T),
+    const updateCurrentDrawnShape = useCallback(
+      <T,>(updaterFn: (payload: T) => T) => {
+        setCurrentlyDrawnShape((prevDrawnShape) => {
+          return {
+            ...(prevDrawnShape || {}),
+            ...updaterFn(prevDrawnShape as T),
+          };
+        });
+      },
+      []
+    );
+
+    const onStageMouseDown = useCallback(
+      (e: KonvaEventObject<MouseEvent>) => {
+        const stage = stageRef?.current;
+        const pos = stage?.getPointerPosition();
+        const x = getNumericVal(pos?.x);
+        const y = getNumericVal(pos?.y);
+
+        isPaintRef.current = true;
+
+        const id = uuidv4();
+
+        const commonProps = {
+          id,
+          key: id,
+          scaleX: 1,
+          scaleY: 1,
         };
-      });
-    };
 
-    const onStageMouseDown = (e: KonvaEventObject<MouseEvent>) => {
-      const stage = stageRef?.current;
-      const pos = stage?.getPointerPosition();
-      const x = getNumericVal(pos?.x);
-      const y = getNumericVal(pos?.y);
+        switch (drawAction) {
+          case DrawAction.Scribble:
+          case DrawAction.Line:
+            updateCurrentDrawnShape<LineConfig>(() => ({
+              ...commonProps,
+              lineCap: "round",
+              lineJoin: "round",
+              points: [x, y, x, y],
+              stroke: color,
+              name: DrawAction.Line,
+            }));
 
-      isPaintRef.current = true;
+            break;
+          case DrawAction.Circle: {
+            updateCurrentDrawnShape<CircleConfig>(() => ({
+              ...commonProps,
+              radius: 1,
+              x,
+              y,
+              stroke: color,
+              name: DrawAction.Circle,
+            }));
+            break;
+          }
 
-      const id = uuidv4();
-
-      const commonProps = {
-        id,
-        key: id,
-        scaleX: 1,
-        scaleY: 1,
-      };
-
-      switch (drawAction) {
-        case DrawAction.Scribble:
-        case DrawAction.Line:
-          updateCurrentDrawnShape<LineConfig>(() => ({
-            ...commonProps,
-            lineCap: "round",
-            lineJoin: "round",
-            points: [x, y, x, y],
-            stroke: color,
-            name: DrawAction.Line,
-          }));
-
-          break;
-        case DrawAction.Circle: {
-          updateCurrentDrawnShape<CircleConfig>(() => ({
-            ...commonProps,
-            radius: 1,
-            x,
-            y,
-            stroke: color,
-            name: DrawAction.Circle,
-          }));
-          break;
+          case DrawAction.Rectangle:
+          case DrawAction.Diamond: {
+            updateCurrentDrawnShape<RectConfig>(() => ({
+              ...commonProps,
+              height: 1,
+              width: 1,
+              x,
+              y,
+              stroke: color,
+              rotationDeg: drawAction === DrawAction.Diamond ? 45 : 0,
+              name: DrawAction.Rectangle,
+            }));
+            break;
+          }
+          case DrawAction.Arrow: {
+            updateCurrentDrawnShape<ArrowConfig>(() => ({
+              ...commonProps,
+              points: [x, y, x, y],
+              fill: color,
+              stroke: color,
+              name: DrawAction.Arrow,
+            }));
+            break;
+          }
         }
+      },
+      [updateCurrentDrawnShape, drawAction]
+    );
 
-        case DrawAction.Rectangle:
-        case DrawAction.Diamond: {
-          updateCurrentDrawnShape<RectConfig>(() => ({
-            ...commonProps,
-            height: 1,
-            width: 1,
-            x,
-            y,
-            stroke: color,
-            rotationDeg: drawAction === DrawAction.Diamond ? 45 : 0,
-            name: DrawAction.Rectangle,
-          }));
-          break;
-        }
-        case DrawAction.Arrow: {
-          updateCurrentDrawnShape<ArrowConfig>(() => ({
-            ...commonProps,
-            points: [x, y, x, y],
-            fill: color,
-            stroke: color,
-            name: DrawAction.Arrow,
-          }));
-          break;
-        }
-      }
-    };
-
-    const onStageMouseMove = () => {
+    const onStageMouseMove = useCallback(() => {
       if (!isPaintRef.current) return;
 
       const stage = stageRef?.current;
@@ -190,9 +202,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
           break;
         }
       }
-    };
-
-    const backgroundRef = useRef<any>(null);
+    }, [updateCurrentDrawnShape, drawAction]);
 
     useEffect(() => {
       if (containerRef.current) {
@@ -200,6 +210,11 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         stageRef?.current?.height(containerRef.current.offsetHeight);
       }
     }, [containerRef]);
+
+    const allDrawings = useMemo(
+      () => [...drawings, currentlyDrawnShape],
+      [drawings, currentlyDrawnShape]
+    );
 
     return (
       <Box ref={containerRef} pos="relative" height="100vh" width="100vw">
@@ -239,16 +254,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
           onMouseMove={onStageMouseMove}
         >
           <Layer>
-            <KonvaRect
-              ref={backgroundRef}
-              x={0}
-              y={0}
-              fill={"white"}
-              id="bg"
-              listening={false}
-            />
-
-            {[...drawings, currentlyDrawnShape].map((drawing) => {
+            {allDrawings.map((drawing) => {
               if (drawing?.name === DrawAction.Rectangle) {
                 return <KonvaRect {...drawing} />;
               }

@@ -1,47 +1,37 @@
 import {
   Box,
-  Flex,
   RangeSlider,
   RangeSliderFilledTrack,
   RangeSliderThumb,
   RangeSliderTrack,
-  Text,
 } from "@chakra-ui/react";
-import { NodeConfig } from "konva/lib/Node";
 import {
   ARROW_HEADS_OPTIONS,
+  BACKGROUND_COLORS,
   DrawAction,
   FONT_FAMILY_OPTIONS,
   FONT_SIZE_OPTIONS,
-  LayerOptions,
   LAYER_OPTIONS,
-  MiscActions,
   MISC_ACTIONS_OPTIONS,
   SHAPE_EDGES_OPTIONS,
   SHAPE_FILL_OPTIONS,
   SLOPPINESS_OPTIONS,
+  STROKE_COLORS,
   STROKE_STYLE_OPTIONS,
   STROKE_WIDTH_OPTIONS,
   TEXT_ALIGN_OPTIONS,
 } from "../../constants";
+import { ColorPicker } from "../ColorPicker";
+import ColorSelector from "../ColorSelector/ColorSelector";
+import { Divider } from "../Divider";
 import { IconButton } from "../IconButton";
+import { OptionSection } from "../OptionSection";
 
 interface OptionsProps {
   type: DrawAction;
 }
 
 export default function Options({ type }: OptionsProps) {
-  // const isShape = [
-  //   DrawAction.Circle,
-  //   DrawAction.Diamond,
-  //   DrawAction.Rectangle,
-  // ].includes(type);
-
-  // const hasEdges = [DrawAction.Diamond, DrawAction.Rectangle].includes(type);
-
-  const isShape = true;
-  const hasEdges = true;
-
   return (
     <Box
       borderRadius={"md"}
@@ -53,158 +43,104 @@ export default function Options({ type }: OptionsProps) {
       overflow="auto"
       style={{ scrollbarWidth: "thin" }}
     >
-      <Text fontSize="x-small">Stroke</Text>
-      <Flex mt={1} gap={1}>
-        {["#1e1e1e", "#e03131", "#2f9e44", "#1971c2", "#f08c00"].map(
-          (color) => (
-            <Box
-              h={6}
-              w={6}
-              borderRadius="md"
-              bg={color}
-              cursor="pointer"
-              border="1px solid #d6d6d6"
-            ></Box>
-          )
-        )}
-      </Flex>
-      {isShape && (
-        <>
-          <Text fontSize="x-small" mt={3}>
-            Background
-          </Text>
-          <Flex mt={1} gap={1}>
-            <Box
-              h={6}
-              w={6}
-              borderRadius="md"
-              cursor="pointer"
-              backgroundImage="url(./transparentFill.png)"
-              border="1px solid #d6d6d6"
-            ></Box>
-            {["#ffc9c9", "#b2f2bb", "#a5d8ff", "#ffec99"].map((color) => (
-              <Box
-                h={6}
-                w={6}
-                borderRadius="md"
-                bg={color}
-                cursor="pointer"
-                border="1px solid #d6d6d6"
-              ></Box>
-            ))}
-          </Flex>
-        </>
-      )}
-      <Text fontSize="x-small" mt={3}>
-        Fill
-      </Text>
-      <Flex mt={1} gap={2}>
-        {SHAPE_FILL_OPTIONS.map(({ id, label, icon }) => (
-          <IconButton label={label} icon={icon} />
+      <OptionSection header="Stroke" noTopMargin>
+        {STROKE_COLORS.map((color) => (
+          <ColorSelector color={color} />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Font size
-      </Text>
-      <Flex mt={1} gap={2}>
+        <Divider />
+        <ColorPicker />
+      </OptionSection>
+
+      <OptionSection header="Background">
+        <ColorSelector isTransparent />
+        {BACKGROUND_COLORS.map((color) => (
+          <ColorSelector color={color} />
+        ))}
+        <Divider />
+        <ColorPicker />
+      </OptionSection>
+
+      <OptionSection header="Font size">
         {FONT_SIZE_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Font family
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+
+      <OptionSection header="Font family">
         {FONT_FAMILY_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
+      </OptionSection>
 
-      <Text fontSize="x-small" mt={3}>
-        Text align
-      </Text>
-      <Flex mt={1} gap={2}>
+      <OptionSection header="Text align">
         {TEXT_ALIGN_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Stroke width
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+
+      <OptionSection header="Fill">
+        {SHAPE_FILL_OPTIONS.map(({ id, label, icon }) => (
+          <IconButton label={label} icon={icon} />
+        ))}
+      </OptionSection>
+
+      <OptionSection header="Stroke width">
         {STROKE_WIDTH_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Stroke style
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+
+      <OptionSection header="Stroke style">
         {STROKE_STYLE_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Sloppiness
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+
+      <OptionSection header="Sloppiness">
         {SLOPPINESS_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
-      {hasEdges && (
-        <>
-          <Text fontSize="x-small" mt={3}>
-            Edges
-          </Text>
-          <Flex mt={1} gap={2}>
-            {SHAPE_EDGES_OPTIONS.map(({ id, label, icon }) => (
-              <IconButton label={label} icon={icon} />
-            ))}
-          </Flex>
-        </>
-      )}
-      <Text fontSize="x-small" mt={3}>
-        Arrowheads
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+
+      <OptionSection header="Edges">
+        {SHAPE_EDGES_OPTIONS.map(({ id, label, icon }) => (
+          <IconButton label={label} icon={icon} />
+        ))}
+      </OptionSection>
+
+      <OptionSection header="Arrowheads">
         {ARROW_HEADS_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Opacity
-      </Text>
-      <RangeSlider
-        mt={1}
-        max={1}
-        min={0}
-        aria-label={["min", "max"]}
-        defaultValue={[1]}
-        borderRadius="md"
-        step={0.1}
-      >
-        <RangeSliderTrack h={2} borderRadius="md">
-          <RangeSliderFilledTrack bg="gray" />
-        </RangeSliderTrack>
-        <RangeSliderThumb index={0} bg="gray" />
-      </RangeSlider>
-      <Text fontSize="x-small" mt={3}>
-        Layers
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+
+      <OptionSection header="Opacity">
+        <RangeSlider
+          mt={1}
+          max={1}
+          min={0}
+          aria-label={["min", "max"]}
+          defaultValue={[1]}
+          borderRadius="md"
+          step={0.1}
+        >
+          <RangeSliderTrack h={2} borderRadius="md">
+            <RangeSliderFilledTrack bg="gray" />
+          </RangeSliderTrack>
+          <RangeSliderThumb index={0} bg="gray" />
+        </RangeSlider>
+      </OptionSection>
+
+      <OptionSection header="Layers">
         {LAYER_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Actions
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+      <OptionSection header="Actions">
         {MISC_ACTIONS_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
+      </OptionSection>
     </Box>
   );
 }

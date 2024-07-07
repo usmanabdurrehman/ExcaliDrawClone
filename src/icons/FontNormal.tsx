@@ -12,13 +12,14 @@ export default function FontNormal() {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path
-        d="m1.667 3.333 6.666 13.334M8.333 3.333 1.667 16.667M11.667 3.333v13.334h6.666"
+      <g
         stroke="currentColor"
         strokeWidth="1.25"
         strokeLinecap="round"
         strokeLinejoin="round"
-      ></path>
+      >
+        <path d="M5.833 16.667v-10a3.333 3.333 0 0 1 3.334-3.334h1.666a3.333 3.333 0 0 1 3.334 3.334v10M5.833 10.833h8.334"></path>
+      </g>
     </svg>
   );
 }

@@ -14,7 +14,7 @@ export default function FontLarge() {
     >
       <g clipPath="url(#a)">
         <path
-          d="M5 16.667V3.333L10 15l5-11.667v13.334"
+          d="M5.833 3.333v13.334h8.334"
           stroke="currentColor"
           strokeWidth="1.25"
           strokeLinecap="round"

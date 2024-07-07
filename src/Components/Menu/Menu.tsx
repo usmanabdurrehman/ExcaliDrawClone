@@ -3,13 +3,16 @@ import {
   MenuButton,
   MenuList,
   MenuItem,
-  MenuItemOption,
-  MenuGroup,
-  MenuOptionGroup,
-  MenuDivider,
   IconButton,
+  Portal,
+  Box,
 } from "@chakra-ui/react";
+import { CANVAS_BG_COLORS, MENU_OPTIONS } from "../../constants";
 import { Hamburger } from "../../icons";
+import { ColorPicker } from "../ColorPicker";
+import ColorSelector from "../ColorSelector/ColorSelector";
+import { Divider } from "../Divider";
+import { OptionSection } from "../OptionSection";
 
 export default function MenuBtn() {
   return (
@@ -19,12 +22,27 @@ export default function MenuBtn() {
         aria-label="Options"
         icon={<Hamburger />}
         variant="outline"
+        bg="#ececf4"
+        size="sm"
       />
-      <MenuList>
-        <MenuItem icon={<></>} command="⌘T">
-          New Tab
-        </MenuItem>
-      </MenuList>
+      <Portal>
+        <MenuList fontSize="x-small" width={"200px"} minWidth="auto">
+          {MENU_OPTIONS.map(({ id, label, keyBind, icon }) => (
+            <MenuItem icon={icon} command={keyBind}>
+              {label}
+            </MenuItem>
+          ))}
+          <Box pl={2}>
+            <OptionSection header="Canvas Background">
+              {CANVAS_BG_COLORS.map((color) => (
+                <ColorSelector color={color} />
+              ))}
+              <Divider />
+              <ColorPicker />
+            </OptionSection>
+          </Box>
+        </MenuList>
+      </Portal>
     </Menu>
   );
 }
