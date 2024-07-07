@@ -9,15 +9,15 @@ export default function BoldStrokeWidth() {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <path
         d="M5 10h10"
         stroke="currentColor"
-        stroke-width="3.75"
-        stroke-linecap="round"
-        stroke-linejoin="round"
+        strokeWidth="3.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       ></path>
     </svg>
   );

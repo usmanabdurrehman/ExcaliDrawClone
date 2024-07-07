@@ -8,12 +8,12 @@ export default function ExportImage() {
       role="img"
       viewBox="0 0 24 24"
       fill="none"
-      stroke-width="2"
+      strokeWidth="2"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g stroke-width="1.25">
+      <g strokeWidth="1.25">
         <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
         <path d="M15 8h.01"></path>
         <path d="M12 20h-5a3 3 0 0 1 -3 -3v-10a3 3 0 0 1 3 -3h10a3 3 0 0 1 3 3v5"></path>

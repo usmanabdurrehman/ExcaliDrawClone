@@ -7,19 +7,19 @@ export default function LockOpen() {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
       <g>
         <path
           d="M13.542 8.542H6.458a2.5 2.5 0 0 0-2.5 2.5v3.75a2.5 2.5 0 0 0 2.5 2.5h7.084a2.5 2.5 0 0 0 2.5-2.5v-3.75a2.5 2.5 0 0 0-2.5-2.5Z"
           stroke="currentColor"
-          stroke-width="1.25"
+          strokeWidth="1.25"
         ></path>
         <path
           d="M10 13.958a1.042 1.042 0 1 0 0-2.083 1.042 1.042 0 0 0 0 2.083Z"
           stroke="currentColor"
-          stroke-width="1.25"
+          strokeWidth="1.25"
         ></path>
         <mask
           id="UnlockedIcon"

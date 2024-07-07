@@ -9,10 +9,10 @@ export default function Line() {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <path d="M4.167 10h11.666" stroke-width="1.5"></path>
+      <path d="M4.167 10h11.666" strokeWidth="1.5"></path>
     </svg>
   );
 }

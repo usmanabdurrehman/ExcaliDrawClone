@@ -9,10 +9,10 @@ export default function Maximize() {
       viewBox="0 0 20 20"
       fill="none"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <path stroke-width="1.25" d="M10 4.167v11.666M4.167 10h11.666"></path>
+      <path strokeWidth="1.25" d="M10 4.167v11.666M4.167 10h11.666"></path>
     </svg>
   );
 }

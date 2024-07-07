@@ -8,12 +8,12 @@ export default function Arrow() {
       role="img"
       viewBox="0 0 24 24"
       fill="none"
-      stroke-width="2"
+      strokeWidth="2"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     >
-      <g stroke-width="1.5">
+      <g strokeWidth="1.5">
         <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
         <line x1="5" y1="12" x2="19" y2="12"></line>
         <line x1="15" y1="16" x2="19" y2="12"></line>
