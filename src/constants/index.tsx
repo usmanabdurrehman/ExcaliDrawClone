@@ -307,7 +307,7 @@ export const SLOPPINESS_OPTIONS = [
 
 export enum ShapeEdges {
   Sharp = 0,
-  Round = 12,
+  Round = 4,
 }
 
 export const SHAPE_EDGES_OPTIONS = [
@@ -459,3 +459,12 @@ export enum SecondaryAction {
   ZoomOut = "zoomOut",
   ResetZoom = "resetZoom",
 }
+
+export enum CanvasAction {
+  Add = "add",
+  Delete = "delete",
+  Drag = "drag",
+  Resize = "resize",
+}
+
+export const SCALE_BY = 0.1;

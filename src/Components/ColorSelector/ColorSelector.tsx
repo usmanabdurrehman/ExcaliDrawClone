@@ -5,12 +5,14 @@ interface ColorSelectorProps {
   isTransparent?: boolean;
   color?: string;
   isSelected?: boolean;
+  onClick: () => void;
 }
 
 export default function ColorSelector({
   isTransparent,
   color,
   isSelected,
+  onClick,
 }: ColorSelectorProps) {
   return (
     <Box
@@ -23,6 +25,7 @@ export default function ColorSelector({
       border="1px solid #d6d6d6"
       role="group"
       pos="relative"
+      onClick={onClick}
     >
       <Box
         {...(isSelected

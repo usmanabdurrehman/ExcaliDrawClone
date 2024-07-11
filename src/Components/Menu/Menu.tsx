@@ -7,14 +7,18 @@ import {
   Portal,
   Box,
 } from "@chakra-ui/react";
-import { CANVAS_BG_COLORS, MENU_OPTIONS } from "../../constants";
+import { CANVAS_BG_COLORS, MenuOption, MENU_OPTIONS } from "../../constants";
 import { Hamburger } from "../../icons";
 import { ColorPicker } from "../ColorPicker";
 import ColorSelector from "../ColorSelector/ColorSelector";
 import { Divider } from "../Divider";
 import { OptionSection } from "../OptionSection";
 
-export default function MenuBtn() {
+interface MenuProps {
+  onAction: (action: MenuOption) => void;
+}
+
+export default function MenuBtn({ onAction }: MenuProps) {
   return (
     <Menu>
       <MenuButton
@@ -28,7 +32,11 @@ export default function MenuBtn() {
       <Portal>
         <MenuList fontSize="x-small" width={"200px"} minWidth="auto">
           {MENU_OPTIONS.map(({ id, label, keyBind, icon }) => (
-            <MenuItem icon={icon} command={keyBind}>
+            <MenuItem
+              icon={icon}
+              command={keyBind}
+              onClick={() => onAction(id)}
+            >
               {label}
             </MenuItem>
           ))}

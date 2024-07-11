@@ -8,17 +8,26 @@ import {
 } from "@chakra-ui/react";
 import { SketchPicker } from "react-color";
 
-const color = "black";
+interface ColorPickerProps {
+  color: string;
+  onChange: (color: string) => void;
+}
 
-export default function ColorPicker() {
+export default function ColorPicker({ color, onChange }: ColorPickerProps) {
+  const colorVal = color || "black";
   return (
     <Popover>
       <PopoverTrigger>
-        <Box bg={color} h={6} w={6} borderRadius="md" cursor="pointer"></Box>
+        <Box bg={colorVal} h={6} w={6} borderRadius="md" cursor="pointer"></Box>
       </PopoverTrigger>
       <Portal>
         <PopoverContent width="300">
-          <SketchPicker onChangeComplete={() => {}} />
+          <SketchPicker
+            color={colorVal}
+            onChangeComplete={(color) => {
+              onChange(color.hex);
+            }}
+          />
         </PopoverContent>
       </Portal>
     </Popover>

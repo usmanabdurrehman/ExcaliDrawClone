@@ -1,72 +1,56 @@
+import { Node, NodeConfig } from "konva/lib/Node";
 import { useCallback, useEffect, useRef } from "react";
-import { Circle, Scribble, Rectangle, Arrow, Text } from "../types";
+import { DrawAction } from "../constants";
 import { downloadURI } from "../utilities";
 export const useStoreProgress = ({
-  setTexts,
-  setArrows,
-  setRectangles,
-  setCircles,
-  setScribbles,
-  scribbles,
-  arrows,
-  texts,
-  rectangles,
-  circles,
+  setDrawings,
+  drawings,
 }: {
-  setScribbles: React.Dispatch<React.SetStateAction<Scribble[]>>;
-  setCircles: React.Dispatch<React.SetStateAction<Circle[]>>;
-  setTexts: React.Dispatch<React.SetStateAction<Text[]>>;
-  setArrows: React.Dispatch<React.SetStateAction<Arrow[]>>;
-  setRectangles: React.Dispatch<React.SetStateAction<Rectangle[]>>;
-  scribbles: Scribble[];
-  arrows: Arrow[];
-  texts: Text[];
-  rectangles: Rectangle[];
-  circles: Circle[];
+  setDrawings: React.Dispatch<React.SetStateAction<NodeConfig[]>>;
+  drawings: NodeConfig[];
 }) => {
   const timeoutRef = useRef<number | null>(null);
 
   const storeDrawingState = useCallback(() => {
-    localStorage.setItem(
-      "drawing",
-      JSON.stringify({ scribbles, rectangles, arrows, texts, circles })
-    );
-  }, [scribbles, rectangles, arrows, texts, circles]);
+    localStorage.setItem("drawing", JSON.stringify({ drawings }));
+  }, [drawings]);
 
   const downloadDrawingState = useCallback(() => {
     const fileName = "drawing-state.json";
-    const json = JSON.stringify(
-      { scribbles, rectangles, arrows, texts, circles },
-      null,
-      2
-    );
+    const json = JSON.stringify({ drawings }, null, 2);
     const blob = new Blob([json], { type: "application/json" });
     const href = URL.createObjectURL(blob);
     downloadURI(href, fileName);
-  }, [scribbles, rectangles, arrows, texts, circles]);
+  }, [drawings]);
 
   useEffect(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
       timeoutRef.current = null;
-      // storeDrawingState();
+      storeDrawingState();
     }, 1200);
   }, [storeDrawingState]);
 
   useEffect(() => {
-    const {
-      scribbles = [],
-      rectangles = [],
-      arrows = [],
-      texts = [],
-      circles = [],
-    } = JSON.parse(localStorage.getItem("drawing") || "{}");
-    setRectangles(rectangles);
-    setArrows(arrows);
-    setTexts(texts);
-    setCircles(circles);
-    setScribbles(scribbles);
+    const { drawings = [] } = JSON.parse(
+      localStorage.getItem("drawing") || "{}"
+    );
+    setDrawings(
+      drawings.filter((drawing) => drawing.name !== DrawAction.Image)
+    );
   }, []);
 
-  return { storeDrawingState, downloadDrawingState };
+  const resetCanvas = () => {
+    localStorage.setItem("drawing", "{}");
+    setDrawings([]);
+  };
+
+  const loadCanvas = (drawingFile: string) => {
+    const { drawings = [] } = JSON.parse(drawingFile || "{}");
+    console.log({ drawings });
+    setDrawings(drawings);
+    localStorage.setItem("drawing", drawingFile);
+  };
+
+  return { downloadDrawingState, resetCanvas, loadCanvas };
 };

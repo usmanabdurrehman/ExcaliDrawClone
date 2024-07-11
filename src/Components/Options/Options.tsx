@@ -9,7 +9,11 @@ import {
 } from "@chakra-ui/react";
 import { Node, NodeConfig } from "konva/lib/Node";
 import {
+  ARROW_HEADS_OPTIONS,
+  BACKGROUND_COLORS,
   DrawAction,
+  FONT_FAMILY_OPTIONS,
+  FONT_SIZE_OPTIONS,
   LayerOptions,
   LAYER_OPTIONS,
   MiscActions,
@@ -17,12 +21,19 @@ import {
   ShapeEdges,
   SHAPE_EDGES_OPTIONS,
   SHAPE_FILL_OPTIONS,
+  SLOPPINESS_OPTIONS,
   StrokeStyle,
   StrokeWidth,
+  STROKE_COLORS,
   STROKE_STYLE_OPTIONS,
   STROKE_WIDTH_OPTIONS,
+  TEXT_ALIGN_OPTIONS,
 } from "../../constants";
+import { ColorPicker } from "../ColorPicker";
+import ColorSelector from "../ColorSelector/ColorSelector";
+import { Divider } from "../Divider";
 import { IconButton } from "../IconButton";
+import { OptionSection } from "../OptionSection";
 
 interface OptionsProps {
   onAction: (action: MiscActions) => void;
@@ -47,6 +58,9 @@ export default function Options({
 
   const hasEdges = [DrawAction.Diamond, DrawAction.Rectangle].includes(type);
 
+  const isText = type === DrawAction.Text;
+  const isArrow = type === DrawAction.Arrow;
+
   return (
     <Box
       borderRadius={"md"}
@@ -56,56 +70,73 @@ export default function Options({
       bg="white"
       height="100%"
       overflow="auto"
+      style={{ scrollbarWidth: "thin" }}
     >
-      <Text fontSize="x-small">Stroke</Text>
-      <Flex mt={1} gap={1}>
-        {["#1e1e1e", "#e03131", "#2f9e44", "#1971c2", "#f08c00"].map(
-          (color) => (
-            <Box
-              h={6}
-              w={6}
-              borderRadius="md"
-              bg={color}
-              cursor="pointer"
-              onClick={() => onShapeAction({ stroke: color })}
-            ></Box>
-          )
-        )}
-      </Flex>
+      <OptionSection header="Stroke" noTopMargin>
+        {STROKE_COLORS.map((color) => (
+          <ColorSelector
+            color={color}
+            onClick={() => onShapeAction({ stroke: color })}
+            isSelected={color === nodeAttrs?.stroke}
+          />
+        ))}
+        <Divider />
+        <ColorPicker
+          color={nodeAttrs?.stroke}
+          onChange={(color) => onShapeAction({ stroke: color })}
+        />
+      </OptionSection>
+
       {isShape && (
+        <OptionSection header="Background">
+          <ColorSelector
+            isTransparent
+            onClick={() => onShapeAction({ fill: undefined })}
+          />
+          {BACKGROUND_COLORS.map((color) => (
+            <ColorSelector
+              color={color}
+              onClick={() => onShapeAction({ fill: color })}
+              isSelected={color === nodeAttrs?.fill}
+            />
+          ))}
+          <Divider />
+          <ColorPicker
+            color={nodeAttrs?.fill}
+            onChange={(color) => onShapeAction({ fill: color })}
+          />
+        </OptionSection>
+      )}
+
+      {isText && (
         <>
-          <Text fontSize="x-small" mt={3}>
-            Background
-          </Text>
-          <Flex mt={1} gap={1}>
-            {["#1e1e1e", "#ffc9c9", "#b2f2bb", "#a5d8ff", "#ffec99"].map(
-              (color) => (
-                <Box
-                  h={6}
-                  w={6}
-                  borderRadius="md"
-                  bg={color}
-                  cursor="pointer"
-                  onClick={() => onShapeAction({ fill: color })}
-                ></Box>
-              )
-            )}
-          </Flex>
+          <OptionSection header="Font size">
+            {FONT_SIZE_OPTIONS.map(({ id, label, icon }) => (
+              <IconButton label={label} icon={icon} />
+            ))}
+          </OptionSection>
+
+          <OptionSection header="Font family">
+            {FONT_FAMILY_OPTIONS.map(({ id, label, icon }) => (
+              <IconButton label={label} icon={icon} />
+            ))}
+          </OptionSection>
+
+          <OptionSection header="Text align">
+            {TEXT_ALIGN_OPTIONS.map(({ id, label, icon }) => (
+              <IconButton label={label} icon={icon} />
+            ))}
+          </OptionSection>
         </>
       )}
-      <Text fontSize="x-small" mt={3}>
-        Fill
-      </Text>
-      {/* TODO: Make SVGs for patterns in illustrators and make image with those svgs maybe*/}
-      <Flex mt={1} gap={2}>
+
+      <OptionSection header="Fill">
         {SHAPE_FILL_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Stroke Width
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+
+      <OptionSection header="Stroke width">
         {STROKE_WIDTH_OPTIONS.map(({ id, label, icon }) => (
           <IconButton
             label={label}
@@ -114,11 +145,9 @@ export default function Options({
             onClick={() => onShapeAction({ strokeWidth: id })}
           />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Stroke Style
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+
+      <OptionSection header="Stroke style">
         {STROKE_STYLE_OPTIONS.map(({ id, label, icon }) => (
           <IconButton
             label={label}
@@ -129,48 +158,54 @@ export default function Options({
             onClick={() => onShapeAction({ dash: id.split(" ") })}
           />
         ))}
-      </Flex>
+      </OptionSection>
+
+      <OptionSection header="Sloppiness">
+        {SLOPPINESS_OPTIONS.map(({ id, label, icon }) => (
+          <IconButton label={label} icon={icon} />
+        ))}
+      </OptionSection>
+
       {hasEdges && (
-        <>
-          <Text fontSize="x-small" mt={3}>
-            Edges
-          </Text>
-          <Flex mt={1} gap={2}>
-            {SHAPE_EDGES_OPTIONS.map(({ id, label, icon }) => (
-              <IconButton
-                label={label}
-                icon={icon}
-                isSelected={
-                  id === (nodeAttrs?.cornerRadius || ShapeEdges.Sharp)
-                }
-                onClick={() => onShapeAction({ cornerRadius: id })}
-              />
-            ))}
-          </Flex>
-        </>
+        <OptionSection header="Edges">
+          {SHAPE_EDGES_OPTIONS.map(({ id, label, icon }) => (
+            <IconButton
+              label={label}
+              icon={icon}
+              isSelected={id === (nodeAttrs?.cornerRadius || ShapeEdges.Sharp)}
+              onClick={() => onShapeAction({ cornerRadius: id })}
+            />
+          ))}
+        </OptionSection>
       )}
-      <Text fontSize="x-small" mt={3}>
-        Opacity
-      </Text>
-      <RangeSlider
-        mt={1}
-        max={1}
-        min={0}
-        aria-label={["min", "max"]}
-        defaultValue={[1]}
-        borderRadius="md"
-        step={0.1}
-        onChange={(opacity) => onShapeAction({ opacity })}
-      >
-        <RangeSliderTrack h={2} borderRadius="md">
-          <RangeSliderFilledTrack bg="gray" />
-        </RangeSliderTrack>
-        <RangeSliderThumb index={0} bg="gray" />
-      </RangeSlider>
-      <Text fontSize="x-small" mt={3}>
-        Layers
-      </Text>
-      <Flex mt={1} gap={2}>
+
+      {isArrow && (
+        <OptionSection header="Arrowheads">
+          {ARROW_HEADS_OPTIONS.map(({ id, label, icon }) => (
+            <IconButton label={label} icon={icon} />
+          ))}
+        </OptionSection>
+      )}
+
+      <OptionSection header="Opacity">
+        <RangeSlider
+          mt={1}
+          max={1}
+          min={0}
+          aria-label={["min", "max"]}
+          defaultValue={[1]}
+          borderRadius="md"
+          step={0.1}
+          onChange={(opacity) => onShapeAction({ opacity })}
+        >
+          <RangeSliderTrack h={2} borderRadius="md">
+            <RangeSliderFilledTrack bg="gray" />
+          </RangeSliderTrack>
+          <RangeSliderThumb index={0} bg="gray" />
+        </RangeSlider>
+      </OptionSection>
+
+      <OptionSection header="Layers">
         {LAYER_OPTIONS.map(({ id, label, icon }) => (
           <IconButton
             label={label}
@@ -178,15 +213,12 @@ export default function Options({
             onClick={() => onLayerChange(id)}
           />
         ))}
-      </Flex>
-      <Text fontSize="x-small" mt={3}>
-        Actions
-      </Text>
-      <Flex mt={1} gap={2}>
+      </OptionSection>
+      <OptionSection header="Actions">
         {MISC_ACTIONS_OPTIONS.map(({ id, label, icon }) => (
           <IconButton label={label} icon={icon} onClick={() => onAction(id)} />
         ))}
-      </Flex>
+      </OptionSection>
     </Box>
   );
 }

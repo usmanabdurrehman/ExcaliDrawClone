@@ -11,3 +11,5 @@
 8. Zoom In/Out
 9. Eraser tool
 <!-- 10. Selecting multiple shapes via mouse + shift click https://konvajs.org/docs/select_and_transform/Basic_demo.html -->
+
+https://stackoverflow.com/questions/60680088/konva-js-free-drawing-drag-zoom-cant-draw-correctly-with-pointer-after-d
