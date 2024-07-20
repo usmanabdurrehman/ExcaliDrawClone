@@ -193,7 +193,7 @@ export default function Options({
           max={1}
           min={0}
           aria-label={["min", "max"]}
-          defaultValue={[1]}
+          value={[nodeAttrs?.opacity || 1]}
           borderRadius="md"
           step={0.1}
           onChange={(opacity) => onShapeAction({ opacity })}

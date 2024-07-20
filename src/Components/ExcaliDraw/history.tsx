@@ -61,6 +61,9 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
 
     const transformerRef = useRef<any>(null);
 
+    const [{ x: stageX, y: stageY }, setStageXY] = useState({ x: 0, y: 0 });
+
+    const [texts, setTexts] = useState<any[]>([]);
     const [drawings, setDrawings] = useState<NodeConfig[]>([]);
     const [currentlyDrawnShape, setCurrentlyDrawnShape] =
       useState<NodeConfig>();
@@ -82,18 +85,18 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       setTextPosition(undefined);
       const id = currentShapeRef?.current;
       if (!id || !textPosition) return;
-      // setTexts((prevTexts) => [
-      //   ...prevTexts,
-      //   {
-      //     id,
-      //     x: textPosition?.x,
-      //     y: textPosition?.y,
-      //     text: editText,
-      //     color: color,
-      //     scaleX: 1,
-      //     scaleY: 1,
-      //   },
-      // ]);
+      setTexts((prevTexts) => [
+        ...prevTexts,
+        {
+          id,
+          x: textPosition?.x,
+          y: textPosition?.y,
+          text: editText,
+          color: color,
+          scaleX: 1,
+          scaleY: 1,
+        },
+      ]);
       setEditText("");
     }, [editText, color, textPosition]);
 
@@ -129,6 +132,8 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       },
       [stageRef, deSelect]
     );
+
+    console.log({ currentlyDrawnShape, drawings });
 
     const addCurrentDrawingToDrawings = () => {
       if (!currentlyDrawnShape) return;
@@ -509,22 +514,11 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       document.body.style.cursor = "default";
     };
 
-    const onDragShapeMove = (e: KonvaEventObject<MouseEvent>) => {
-      setDrawings((prevDrawings) =>
-        prevDrawings.map((drawing) =>
-          drawing.id === currentSelectedShape?.id
-            ? { ...drawing, x: e.target.x(), y: e.target.y() }
-            : drawing
-        )
-      );
-    };
-
-    const getShapeProps = (shape: NodeConfig): NodeConfig => ({
+    const getShapeProps = (shape: NodeConfig) => ({
       key: shape.id,
       id: shape.id,
       onDragStart: onDragShapeStart,
       onDragEnd: onDragShapeEnd,
-      onDragMove: onDragShapeMove,
       onTransformStart: onTransformShapeStart,
       onTransformEnd: onTransformShapeEnd,
       onClick: onShapeClick,

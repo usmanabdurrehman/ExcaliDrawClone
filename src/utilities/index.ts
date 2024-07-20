@@ -66,3 +66,19 @@ export const round = (num: number, decimalPlaces: number) => {
   const p = Math.pow(10, decimalPlaces);
   return Math.round(num * p) / p;
 };
+
+export const openDB = () => {
+  const request = window.indexedDB.open("excalidraw", 1);
+  request.onupgradeneeded = () => {
+    const db = request.result;
+    if (!db.objectStoreNames.contains("images")) {
+      const objectStore = db.createObjectStore("images", {
+        keyPath: "id",
+      });
+      objectStore.createIndex("id", "id", {
+        unique: false,
+      });
+    }
+  };
+  return request;
+};

@@ -16,9 +16,15 @@ import { OptionSection } from "../OptionSection";
 
 interface MenuProps {
   onAction: (action: MenuOption) => void;
+  onColorChange: (color: string) => void;
+  bgColor: string;
 }
 
-export default function MenuBtn({ onAction }: MenuProps) {
+export default function MenuBtn({
+  onAction,
+  onColorChange,
+  bgColor,
+}: MenuProps) {
   return (
     <Menu>
       <MenuButton
@@ -43,10 +49,17 @@ export default function MenuBtn({ onAction }: MenuProps) {
           <Box pl={2}>
             <OptionSection header="Canvas Background">
               {CANVAS_BG_COLORS.map((color) => (
-                <ColorSelector color={color} />
+                <ColorSelector
+                  color={color}
+                  onClick={() => onColorChange(color)}
+                  isSelected={color === bgColor}
+                />
               ))}
               <Divider />
-              <ColorPicker />
+              <ColorPicker
+                color={bgColor}
+                onChange={(color) => onColorChange(color)}
+              />
             </OptionSection>
           </Box>
         </MenuList>

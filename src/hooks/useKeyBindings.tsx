@@ -4,9 +4,11 @@ import { DrawAction } from "../constants";
 export const useKeyBindings = ({
   onAction,
   isWritingInProgress,
+  onEnter,
 }: {
   onAction: (action: DrawAction) => void;
-  isWritingInProgress: boolean;
+  isWritingInProgress?: boolean;
+  onEnter: () => void;
 }) => {
   // TODO: To be replaced with useEffectEvent when released
   useEffect(() => {
@@ -15,43 +17,14 @@ export const useKeyBindings = ({
       e.preventDefault();
 
       switch (true) {
-        case e.ctrlKey && e.key === "z": {
-          onAction(DrawAction.Undo);
+        case e.key === "Enter": {
+          onEnter();
           break;
         }
-        case e.ctrlKey && e.key === "d": {
-          onAction(DrawAction.Delete);
-          break;
-        }
-        case e.ctrlKey && e.key === "k": {
-          onAction(DrawAction.Clear);
-          break;
-        }
-        case e.key === "s": {
-          onAction(DrawAction.Select);
-          break;
-        }
-        case e.key === "r": {
-          onAction(DrawAction.Rectangle);
-          break;
-        }
-        case e.key === "c": {
-          onAction(DrawAction.Circle);
-          break;
-        }
-        case e.key === "a": {
-          onAction(DrawAction.Arrow);
-          break;
-        }
-        case e.key === "f": {
-          onAction(DrawAction.Scribble);
-          break;
-        }
-        // TODO: Add Actions for Import/Export
       }
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onAction, isWritingInProgress]);
+  }, [onAction, isWritingInProgress, onEnter]);
 };
