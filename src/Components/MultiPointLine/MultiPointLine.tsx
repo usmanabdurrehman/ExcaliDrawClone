@@ -38,9 +38,6 @@ export default function MultiPointLine({
   const hoverRef = useRef<any>(null);
 
   return (
-    // <Box m={6}>
-    //   <Stage height={400} width={400}>
-    //     <Layer>
     <>
       <Line
         stroke={"black"}
@@ -97,8 +94,5 @@ export default function MultiPointLine({
         />
       ))}
     </>
-    //     </Layer>
-    //   </Stage>
-    // </Box>
   );
 }
