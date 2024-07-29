@@ -36,7 +36,9 @@ export const Draw: React.FC<DrawProps> = React.memo(function Draw({}) {
   const [drawings, setDrawings] = useState<NodeConfig[]>([]);
   const [currentlyDrawnShape, setCurrentlyDrawnShape] = useState<NodeConfig>();
 
-  const [drawAction, setDrawAction] = useState<DrawAction>(DrawAction.Select);
+  const [drawAction, setDrawAction] = useState<DrawAction>(DrawAction.Crown);
+
+  const [isDraggable, setIsDraggable] = useState(false);
 
   const [{ viewWidth, viewHeight }, setViewMeasures] = useState<{
     viewHeight: number | undefined;
@@ -73,6 +75,7 @@ export const Draw: React.FC<DrawProps> = React.memo(function Draw({}) {
 
   const deSelect = useCallback(() => {
     transformerRef?.current?.nodes([]);
+    setIsDraggable(false);
     setCurrentSelectedShape(undefined);
   }, []);
 
@@ -216,6 +219,7 @@ export const Draw: React.FC<DrawProps> = React.memo(function Draw({}) {
     const node = e.currentTarget;
     setCurrentSelectedShape({ node, attrs: node.attrs });
 
+    setIsDraggable(true);
     transformerRef.current?.nodes([node]);
   };
   const [isDragging, setIsDragging] = useState(false);
@@ -243,7 +247,7 @@ export const Draw: React.FC<DrawProps> = React.memo(function Draw({}) {
 
   const shapeProps = {
     onClick: onShapeClick,
-    draggable: drawAction === DrawAction.Select,
+    draggable: isDraggable,
     onDragEnd,
     onDragStart,
   };

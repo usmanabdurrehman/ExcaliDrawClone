@@ -42,5 +42,5 @@ export const DRAW_OPTIONS = [
 ];
 
 export const MULTI_POINT_LINE_BG = "#a5d8ff";
-export const SCRIBBLE_BG = "#a5d8ff";
+export const SCRIBBLE_BG = "#ffc9c9";
 export const STROKE_COLOR = "#000";
