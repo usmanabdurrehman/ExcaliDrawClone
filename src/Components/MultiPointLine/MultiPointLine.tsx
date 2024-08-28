@@ -33,7 +33,7 @@ export default function MultiPointLine({
     return mappedPoints;
   }, [points, activatePoints]);
 
-  console.log({ points, mappedPoints, activatePoints });
+  // console.log({ points, mappedPoints, activatePoints });
 
   const hoverRef = useRef<any>(null);
 

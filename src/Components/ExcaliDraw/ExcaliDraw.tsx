@@ -181,7 +181,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         isSelectionRef.current = false;
         setSelectionBox(undefined);
       }
-      if (currentlyDrawnShape && !isMultiPointRef.current) {
+      if (currentlyDrawnShape) {
         addCurrentDrawingToDrawings();
       }
     };
@@ -235,7 +235,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         scaleY: 1,
       };
 
-      return;
+      // return;
 
       switch (drawAction) {
         case DrawAction.Scribble:
@@ -294,7 +294,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
 
       if (
         (drawAction === DrawAction.Select && !isSelectionRef.current) ||
-        !(isPaintRef.current || isMultiPointRef.current)
+        !isPaintRef.current
       ) {
         // console.log("yo dont return", isPaintRef, isMultiPointRef);
         return;
@@ -314,26 +314,26 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       const y = getNumericVal(pos?.y);
       // console.log("we here");
 
-      if (isMultiPointRef.current && drawAction === DrawAction.Line) {
-        // console.log("actual shiz");
-        updateCurrentDrawnShape<LineConfig>((prevLine) => {
-          const prevPoints = [...(prevLine?.points || [])];
-          const pointsLength = isMultiPointRef.current;
-          // 1 => 2,3
-          // 2 => 4,5
-          prevPoints[pointsLength * 2] = x;
-          prevPoints[pointsLength * 2 + 1] = y;
-          return {
-            points: prevPoints,
-          };
-        });
-        return;
-      }
+      // if (isMultiPointRef.current && drawAction === DrawAction.Line) {
+      //   // console.log("actual shiz");
+      //   updateCurrentDrawnShape<LineConfig>((prevLine) => {
+      //     const prevPoints = [...(prevLine?.points || [])];
+      //     const pointsLength = isMultiPointRef.current;
+      //     // 1 => 2,3
+      //     // 2 => 4,5
+      //     prevPoints[pointsLength * 2] = x;
+      //     prevPoints[pointsLength * 2 + 1] = y;
+      //     return {
+      //       points: prevPoints,
+      //     };
+      //   });
+      //   return;
+      // }
 
       switch (drawAction) {
         case DrawAction.Scribble: {
           updateCurrentDrawnShape<LineConfig>((prevScribble) => ({
-            points: [...(prevScribble.points || []), x, y],
+            points: [...(prevScribble?.points || []), x, y],
           }));
 
           break;
@@ -388,6 +388,8 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         }
       }
     };
+    console.log({ drawings });
+
     const [enableAnchorPoints, setEnableAnchorPoints] = useState(false);
 
     const onShapeClick = (e: KonvaEventObject<MouseEvent>) => {
@@ -652,7 +654,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         const pos = getRelativePointerPosition(stage);
         const x = getNumericVal(pos?.x);
         const y = getNumericVal(pos?.y);
-        console.log({ isMultiPointRef });
+        // console.log({ isMultiPointRef });
         if (isMultiPointRef.current === 0) {
           updateCurrentDrawnShape<LineConfig>((prevLine) => ({
             id: uuidv4(),
@@ -940,21 +942,21 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
                       <KonvaCircle {...drawing} {...getShapeProps(drawing)} />
                     );
                   }
-                  if (drawing?.name === DrawAction.Line) {
-                    return (
-                      <MultiPointLine
-                        {...drawing}
-                        {...getShapeProps(drawing)}
-                        onPointDrag={() => {}}
-                        activatePoints={enableAnchorPoints}
-                      />
-                    );
-                  }
                   // if (drawing?.name === DrawAction.Line) {
                   //   return (
-                  //     <KonvaLine {...drawing} {...getShapeProps(drawing)} />
+                  //     <MultiPointLine
+                  //       {...drawing}
+                  //       {...getShapeProps(drawing)}
+                  //       onPointDrag={() => {}}
+                  //       activatePoints={enableAnchorPoints}
+                  //     />
                   //   );
                   // }
+                  if (drawing?.name === DrawAction.Line) {
+                    return (
+                      <KonvaLine {...drawing} {...getShapeProps(drawing)} />
+                    );
+                  }
                   if (drawing?.name === DrawAction.Arrow) {
                     return (
                       <KonvaArrow
