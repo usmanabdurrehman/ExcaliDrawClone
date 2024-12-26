@@ -42,7 +42,6 @@ import { CircleConfig } from "konva/lib/shapes/Circle";
 import { RectConfig } from "konva/lib/shapes/Rect";
 import Konva from "konva";
 import { ImageConfig } from "konva/lib/shapes/Image";
-import { useHistory } from "../../hooks/useHistory";
 import MultiPointLine from "../MultiPointLine/MultiPointLine";
 
 interface ExcaliDrawProps {}
@@ -97,17 +96,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       setEditText("");
     }, [editText, color, textPosition]);
 
-    const {
-      onDragShapeEnd,
-      onDragShapeStart,
-      onTransformShapeEnd,
-      onTransformShapeStart,
-      updateCanvasHistory,
-      onHistory,
-      historyIndexRef,
-      canvasHistory,
-    } = useHistory({ setDrawings, transformerRef });
-
     const [currentSelectedShape, setCurrentSelectedShape] = useState<{
       type: DrawAction;
       id: string;
@@ -133,22 +121,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     const addCurrentDrawingToDrawings = () => {
       if (!currentlyDrawnShape) return;
       setDrawings((prevDrawings) => [...prevDrawings, currentlyDrawnShape]);
-      const shouldUpdateCanvasHistory = [
-        DrawAction.Arrow,
-        DrawAction.Circle,
-        DrawAction.Rectangle,
-        DrawAction.Scribble,
-        DrawAction.Text,
-      ].includes(drawAction);
-
-      if (shouldUpdateCanvasHistory) {
-        updateCanvasHistory({
-          type: CanvasAction.Add,
-          drawAction,
-          payload: currentlyDrawnShape,
-        });
-      }
-
       setCurrentlyDrawnShape(undefined);
     };
 
@@ -422,11 +394,6 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       const record = drawings?.find(
         (record) => record.id === currentSelectedShape?.id
       );
-      updateCanvasHistory({
-        type: CanvasAction.Delete,
-        drawAction: currentSelectedShape?.type as DrawAction,
-        payload: record,
-      });
 
       transformerRef?.current?.nodes([]);
       setDrawings((prevRecords) =>
@@ -500,7 +467,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     }, [inputRef]);
 
     const onShapeOver = (e: KonvaEventObject<MouseEvent>) => {
-      document.body.style.cursor = "move";
+      if (isDraggable) document.body.style.cursor = "move";
       if (isPaintRef.current && drawAction === DrawAction.Eraser) {
         erasedIds.current.push(e.target.attrs.id);
         e.target.setAttr("opacity", 0.2);
@@ -524,11 +491,7 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     const getShapeProps = (shape: NodeConfig): NodeConfig => ({
       key: shape.id,
       id: shape.id,
-      onDragStart: onDragShapeStart,
-      onDragEnd: onDragShapeEnd,
       onDragMove: onDragShapeMove,
-      onTransformStart: onTransformShapeStart,
-      onTransformEnd: onTransformShapeEnd,
       onClick: onShapeClick,
       onMouseOver: onShapeOver,
       onMouseOut: onShapeOut,
@@ -557,11 +520,9 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     const onSecondaryActionChange = (action: SecondaryAction) => {
       switch (action) {
         case SecondaryAction.Undo: {
-          onHistory(true);
           break;
         }
         case SecondaryAction.Redo: {
-          onHistory();
           break;
         }
         default: {
@@ -645,6 +606,22 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
     }
     if (drawAction === DrawAction.Eraser) {
       cursor = `url(/eraser.png), auto`;
+    }
+    if (
+      [
+        DrawAction.Arrow,
+        DrawAction.Rectangle,
+        DrawAction.Circle,
+        DrawAction.Line,
+        DrawAction.Diamond,
+        DrawAction.Scribble,
+        DrawAction.Text,
+      ].includes(drawAction)
+    ) {
+      cursor = "crosshair";
+    }
+    if (drawAction === DrawAction.Move) {
+      cursor = "grab";
     }
 
     const onStageClick = (e: KonvaEventObject<MouseEvent>) => {
@@ -828,8 +805,8 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
       <Box
         ref={containerRef}
         pos="relative"
-        height="100vh"
-        width="100vw"
+        height={window.innerHeight}
+        width={window.innerWidth}
         cursor={cursor}
       >
         <input
@@ -888,10 +865,8 @@ export const ExcaliDraw: React.FC<ExcaliDrawProps> = React.memo(
         )}
         <Box zIndex={1} left={4} pos="absolute" bottom="20px">
           <SecondaryActionButtons
-            isUndoDisabled={historyIndexRef.current === -1}
-            isRedoDisabled={
-              historyIndexRef.current === canvasHistory?.length - 1
-            }
+            isUndoDisabled={true}
+            isRedoDisabled={true}
             onActionChange={onSecondaryActionChange}
             zoom={zoom}
           />
